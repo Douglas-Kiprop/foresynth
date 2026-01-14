@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #04060b;
+  --color-foreground: #b8cce0;
+
+  --color-primary: #06b6d4;
+  --color-primary-foreground: #000000;
+
+  --color-sidebar: rgba(6, 182, 212, 0.05);
+  --color-sidebar-border: rgba(6, 182, 212, 0.2);
+
+  --color-accent: #d946ef;
+  /* Fuchsia */
+  --color-accent-foreground: #ffffff;
+
+  --font-orbitron: var(--font-orbitron);
+  --font-rajdhani: var(--font-rajdhani);
+
+  --shadow-neon: 0 0 20px rgba(6, 182, 212, 0.4);
+}
+
+/* Custom Utilities that might not be auto-generated or complex selectors */
+@utility text-balance {
+  text-wrap: balance;
+}
+
+/* Base Styles */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-rajdhani), sans-serif;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-orbitron), sans-serif;
+}
+
+/* Custom Scrollbar for Cyberpunk/Modern feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #04060b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #06b6d4;
+}
