@@ -41,7 +41,7 @@ export default function WatchlistDetailPage({ params }: { params: Promise<{ id: 
         }
     };
 
-    const handleAddMarkets = (_, markets: Market[]) => {
+    const handleAddMarkets = (_: any, markets: Market[]) => {
         markets.forEach(m => addMarketToWatchlist(id, m));
     };
 
