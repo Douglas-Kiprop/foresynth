@@ -58,7 +58,6 @@ export function GlobalRadar({ onAddTarget }: GlobalRadarProps) {
                             <th className="p-4">Operator</th>
                             <th className="p-4">Net P/L (Size)</th>
                             <th className="p-4 hidden md:table-cell">Volume</th>
-                            <th className="p-4 hidden md:table-cell">Category</th>
                             <th className="p-4">Track</th>
                         </tr>
                     </thead>
@@ -85,11 +84,6 @@ export function GlobalRadar({ onAddTarget }: GlobalRadarProps) {
                                 </td>
                                 <td className="p-4 font-mono text-foreground/60 hidden md:table-cell">
                                     ${(trader.volume / 1000000).toFixed(1)}M
-                                </td>
-                                <td className="p-4 hidden md:table-cell">
-                                    <span className="px-2 py-1 rounded-sm bg-white/5 border border-white/10 text-xs font-mono">
-                                        {trader.topCategory}
-                                    </span>
                                 </td>
                                 <td className="p-4">
                                     <button
