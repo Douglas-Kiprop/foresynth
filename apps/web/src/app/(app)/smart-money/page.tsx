@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trophy, TrendingUp, Users } from "lucide-react";
+import { Trophy, TrendingUp, Users, Crosshair } from "lucide-react";
 import { GlobalRadar } from "@/components/smart-money/global-radar";
 import { SmartMoneyList } from "@/components/smart-money/smart-money-list";
 import { SignalInterceptDrawer } from "@/components/smart-money/signal-drawer";
@@ -29,8 +29,8 @@ export default function SmartMoneyPage() {
         <div className="space-y-8 animate-fade-in pb-20">
             {/* Header */}
             <div>
-                <h1 className="text-4xl font-orbitron font-bold text-foreground drop-shadow-lg">
-                    THE HUNTER'S CONSOLE
+                <h1 className="text-4xl font-orbitron font-bold text-foreground drop-shadow-lg flex items-center gap-3">
+                    <Crosshair className="w-8 h-8 text-primary animate-pulse" /> THE HUNTER'S CONSOLE
                 </h1>
                 <p className="text-foreground/60 font-light mt-2 max-w-xl">
                     Track whales, identify snipers, and configure automated signal intercepts.

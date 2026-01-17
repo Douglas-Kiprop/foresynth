@@ -2,7 +2,7 @@
 
 import { useWatchlistStore } from "@/stores/watchlist-store";
 import { WatchlistCard } from "@/components/watchlist/watchlist-card";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, LayoutGrid } from "lucide-react";
 import { useState } from "react";
 import { SynthesizerModal } from "@/components/watchlist/synthesizer-modal";
 
@@ -15,8 +15,8 @@ export default function WatchlistsPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-4xl font-orbitron font-bold text-foreground drop-shadow-lg">
-                        OPERATOR DASHBOARD
+                    <h1 className="text-4xl font-orbitron font-bold text-foreground drop-shadow-lg flex items-center gap-3">
+                        <LayoutGrid className="w-8 h-8 text-primary animate-pulse" /> OPERATOR DASHBOARD
                     </h1>
                     <p className="text-foreground/60 font-light mt-2 max-w-xl">
                         Monitor active signals, track volatility, and manage your prediction portfolio.

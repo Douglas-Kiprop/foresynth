@@ -5,6 +5,7 @@ export type AlertConfig = {
     minTradeSize: number; // in USD
     onlyBuyOrders: boolean;
     assetClassFilter?: string[]; // e.g. ["Politics", "Crypto"]
+    channels?: ("in-app" | "telegram" | "discord")[];
 };
 
 export type TargetSquad = {
@@ -31,7 +32,8 @@ type SmartMoneyState = {
 const DEFAULT_ALERT: AlertConfig = {
     minTradeSize: 1000,
     onlyBuyOrders: true,
-    assetClassFilter: []
+    assetClassFilter: [],
+    channels: ["in-app"]
 };
 
 // Default state is now EMPTY, no forced "Alpha Squad"

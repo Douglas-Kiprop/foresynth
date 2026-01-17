@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Plus, Wallet, ShieldAlert } from "lucide-react";
 import { AlertConfig } from "@/stores/smart-money-store";
+import { cn } from "@/lib/utils";
 
 interface AddWalletModalProps {
     squadId: string;
@@ -20,6 +21,7 @@ export function AddWalletModal({ squadId, onClose, onAdd }: AddWalletModalProps)
     const [minSize, setMinSize] = useState(1000);
     const [onlyBuy, setOnlyBuy] = useState(true);
     const [selectedCategories, setSelectedCategories] = useState<string[]>(CATEGORIES);
+    const [channels, setChannels] = useState<("in-app" | "telegram" | "discord")[]>(["in-app"]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -27,7 +29,8 @@ export function AddWalletModal({ squadId, onClose, onAdd }: AddWalletModalProps)
             onAdd(address, {
                 minTradeSize: minSize,
                 onlyBuyOrders: onlyBuy,
-                assetClassFilter: selectedCategories
+                assetClassFilter: selectedCategories,
+                channels
             }, name);
             onClose();
         }
@@ -38,6 +41,14 @@ export function AddWalletModal({ squadId, onClose, onAdd }: AddWalletModalProps)
             setSelectedCategories(prev => prev.filter(c => c !== cat));
         } else {
             setSelectedCategories(prev => [...prev, cat]);
+        }
+    };
+
+    const toggleChannel = (channel: "in-app" | "telegram" | "discord") => {
+        if (channels.includes(channel)) {
+            setChannels(prev => prev.filter(c => c !== channel));
+        } else {
+            setChannels(prev => [...prev, channel]);
         }
     };
 
@@ -125,6 +136,34 @@ export function AddWalletModal({ squadId, onClose, onAdd }: AddWalletModalProps)
                                     <span className="font-bold text-xs">ONLY NOTIFY BUY ORDERS</span>
                                 </div>
                             </button>
+                        </div>
+
+                        {/* Notification Channels */}
+                        <div className="space-y-4">
+                            <label className="text-xs font-mono text-foreground/40 uppercase">3. NOTIFICATION CHANNELS</label>
+                            <div className="space-y-2">
+                                {["in-app", "telegram", "discord"].map((channel) => {
+                                    const isSelected = channels.includes(channel as any);
+                                    return (
+                                        <button
+                                            type="button"
+                                            key={channel}
+                                            onClick={() => toggleChannel(channel as any)}
+                                            className={cn(
+                                                "w-full p-3 border rounded-sm flex items-center justify-between transition-all",
+                                                isSelected ? "bg-primary/10 border-primary text-primary" : "bg-black/40 border-sidebar-border text-foreground/60"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <div className={cn("w-3 h-3 border rounded-sm flex items-center justify-center", isSelected ? "bg-primary border-primary text-black" : "border-foreground/40")}>
+                                                    {isSelected && "✓"}
+                                                </div>
+                                                <span className="font-bold text-xs uppercase">{channel} {channel !== 'in-app' && "WEBHOOK"}</span>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </form>
                 </div>

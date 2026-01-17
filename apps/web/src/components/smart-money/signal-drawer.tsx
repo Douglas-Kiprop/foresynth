@@ -18,6 +18,7 @@ export function SignalInterceptDrawer({ trader, onClose, onSave }: SignalInterce
     const [minSize, setMinSize] = useState(1000);
     const [onlyBuy, setOnlyBuy] = useState(true);
     const [selectedCategories, setSelectedCategories] = useState<string[]>(CATEGORIES);
+    const [channels, setChannels] = useState<("in-app" | "telegram" | "discord")[]>(["in-app"]);
 
     const { squads, createSquad } = useSmartMoneyStore();
     const [selectedSquadId, setSelectedSquadId] = useState(squads[0]?.id || "default");
@@ -29,6 +30,14 @@ export function SignalInterceptDrawer({ trader, onClose, onSave }: SignalInterce
             setSelectedCategories(prev => prev.filter(c => c !== cat));
         } else {
             setSelectedCategories(prev => [...prev, cat]);
+        }
+    };
+
+    const toggleChannel = (channel: "in-app" | "telegram" | "discord") => {
+        if (channels.includes(channel)) {
+            setChannels(prev => prev.filter(c => c !== channel));
+        } else {
+            setChannels(prev => [...prev, channel]);
         }
     };
 
@@ -48,7 +57,8 @@ export function SignalInterceptDrawer({ trader, onClose, onSave }: SignalInterce
         onSave({
             minTradeSize: minSize,
             onlyBuyOrders: onlyBuy,
-            assetClassFilter: selectedCategories.length > 0 ? selectedCategories : undefined
+            assetClassFilter: selectedCategories.length > 0 ? selectedCategories : undefined,
+            channels
         }, selectedSquadId);
     };
 
@@ -177,6 +187,33 @@ export function SignalInterceptDrawer({ trader, onClose, onSave }: SignalInterce
                                 <span className="font-bold text-xs">ONLY NOTIFY BUY ORDERS</span>
                             </div>
                         </button>
+                    </div>
+
+                    {/* Step 3: Notification Channels */}
+                    <div className="space-y-4">
+                        <label className="text-xs font-mono text-foreground/40 uppercase">3. NOTIFICATION CHANNELS</label>
+                        <div className="space-y-2">
+                            {["in-app", "telegram", "discord"].map((channel) => {
+                                const isSelected = channels.includes(channel as any);
+                                return (
+                                    <button
+                                        key={channel}
+                                        onClick={() => toggleChannel(channel as any)}
+                                        className={cn(
+                                            "w-full p-3 border rounded-sm flex items-center justify-between transition-all",
+                                            isSelected ? "bg-primary/10 border-primary text-primary" : "bg-black/40 border-sidebar-border text-foreground/60"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <div className={cn("w-3 h-3 border rounded-sm flex items-center justify-center", isSelected ? "bg-primary border-primary text-black" : "border-foreground/40")}>
+                                                {isSelected && "✓"}
+                                            </div>
+                                            <span className="font-bold text-xs uppercase">{channel} {channel !== 'in-app' && "WEBHOOK"}</span>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
 
