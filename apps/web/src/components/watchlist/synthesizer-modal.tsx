@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, Search, Plus, Check, Loader2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { searchMarkets, Market } from "@/lib/mock-data";
+import { marketsApi, Market as ApiMarket } from "@/lib/api";
+import { Market } from "@/lib/mock-data";
 
 interface SynthesizerModalProps {
     onClose: () => void;
@@ -12,16 +13,67 @@ interface SynthesizerModalProps {
     mode?: "create" | "add";
 }
 
+/**
+ * Debounce hook for search input
+ */
+function useDebounce<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedValue(value), delay);
+        return () => clearTimeout(handler);
+    }, [value, delay]);
+
+    return debouncedValue;
+}
+
 export function SynthesizerModal({ onClose, onConfirm, initialName = "", mode = "create" }: SynthesizerModalProps) {
     const [query, setQuery] = useState("");
     const [name, setName] = useState(initialName);
     const [selectedMarkets, setSelectedMarkets] = useState<Market[]>([]);
     const [isSynthesizing, setIsSynthesizing] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
+    const [results, setResults] = useState<Market[]>([]);
+    const [searchError, setSearchError] = useState<string | null>(null);
 
-    const results = useMemo(() => {
-        if (!query) return [];
-        return searchMarkets(query);
-    }, [query]);
+    // Debounce the search query
+    const debouncedQuery = useDebounce(query, 300);
+
+    // Search markets when query changes
+    useEffect(() => {
+        if (!debouncedQuery || debouncedQuery.length < 2) {
+            setResults([]);
+            return;
+        }
+
+        const searchMarkets = async () => {
+            setIsSearching(true);
+            setSearchError(null);
+            try {
+                const response = await marketsApi.search(debouncedQuery, 15);
+                // Transform API response to local Market format
+                const markets: Market[] = response.markets.map(m => ({
+                    id: m.id,
+                    question: m.question,
+                    volume: m.volume,
+                    outcome: "Yes",
+                    probability: Math.round(m.yes_price * 100),
+                    change24h: 0,
+                    category: m.category || "Other",
+                    sparklineData: Array.from({ length: 20 }, () => Math.round(m.yes_price * 100) + (Math.random() * 10 - 5)),
+                }));
+                setResults(markets);
+            } catch (err) {
+                console.error("Search failed:", err);
+                setSearchError("Failed to search markets. Check if backend is running.");
+                setResults([]);
+            } finally {
+                setIsSearching(false);
+            }
+        };
+
+        searchMarkets();
+    }, [debouncedQuery]);
 
     const handleToggle = (market: Market) => {
         if (selectedMarkets.find(m => m.id === market.id)) {
@@ -36,7 +88,7 @@ export function SynthesizerModal({ onClose, onConfirm, initialName = "", mode = 
         if (selectedMarkets.length === 0) return;
 
         setIsSynthesizing(true);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Shorter delay
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         onConfirm(name, selectedMarkets);
         setIsSynthesizing(false);
@@ -69,16 +121,23 @@ export function SynthesizerModal({ onClose, onConfirm, initialName = "", mode = 
                     <div className="space-y-4">
                         <label className="text-xs font-mono text-foreground/40">1. INPUT KEYWORDS</label>
                         <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
+                            {isSearching ? (
+                                <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary animate-spin" />
+                            ) : (
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40 group-focus-within:text-primary transition-colors" />
+                            )}
                             <input
                                 type="text"
-                                placeholder="SEARCH MARKETS (e.g. Trump, Crypto, Fed)..."
+                                placeholder="SEARCH POLYMARKET (e.g. Trump, Crypto, Fed)..."
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 className="w-full bg-black/20 border border-sidebar-border rounded-sm py-4 pl-12 pr-4 text-lg font-mono focus:outline-none focus:border-primary/50 focus:shadow-neon transition-all"
                                 autoFocus
                             />
                         </div>
+                        {searchError && (
+                            <p className="text-xs text-red-400 font-mono">{searchError}</p>
+                        )}
                     </div>
 
                     {/* Results Grid */}
@@ -104,7 +163,7 @@ export function SynthesizerModal({ onClose, onConfirm, initialName = "", mode = 
                                                     {market.question}
                                                 </span>
                                                 <span className="text-xs text-foreground/40 font-mono mt-1">
-                                                    VOL: ${(market.volume / 1000000).toFixed(1)}M • {market.outcome}: {market.probability}%
+                                                    VOL: ${(market.volume / 1000000).toFixed(1)}M • YES: {market.probability}%
                                                 </span>
                                             </div>
 
@@ -118,6 +177,13 @@ export function SynthesizerModal({ onClose, onConfirm, initialName = "", mode = 
                                     );
                                 })}
                             </div>
+                        </div>
+                    )}
+
+                    {/* Empty state when searching */}
+                    {query.length >= 2 && !isSearching && results.length === 0 && !searchError && (
+                        <div className="text-center py-8 border border-dashed border-sidebar-border rounded-lg">
+                            <p className="text-foreground/40 font-mono text-sm">NO SIGNALS FOUND FOR &quot;{query}&quot;</p>
                         </div>
                     )}
                 </div>
@@ -150,7 +216,7 @@ export function SynthesizerModal({ onClose, onConfirm, initialName = "", mode = 
                         ) : (
                             <>
                                 {mode === "create" ? <Plus className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                                {mode === "create" ? "GENERATE" : "ADD SELECTED MARKETS"}
+                                {mode === "create" ? `GENERATE (${selectedMarkets.length})` : `ADD ${selectedMarkets.length} MARKETS`}
                             </>
                         )}
                     </button>
