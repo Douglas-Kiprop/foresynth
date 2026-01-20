@@ -165,11 +165,20 @@ async def get_trending_markets(limit: int = Query(10, ge=1, le=50)):
             # Ensure prices has elements
             yes_price = float(prices[0]) if prices and len(prices) > 0 else 0.5
             
+            # Get No price
+            no_price = float(prices[1]) if prices and len(prices) > 1 else 0.5
+            
             markets.append({
                 "id": str(m.get("id")),
                 "question": m.get("question") or m.get("title", "Untitled"),
+                "slug": m.get("slug", ""),
                 "volume": volume,
+                "liquidity": float(m.get("liquidity", 0) or 0),
                 "yes_price": yes_price,
+                "no_price": no_price,
+                "end_date": m.get("endDate"),
+                "image": m.get("image"),
+                "category": m.get("category") or "Event"
             })
         except Exception as e:
             continue

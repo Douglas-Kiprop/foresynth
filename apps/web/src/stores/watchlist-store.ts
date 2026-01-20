@@ -21,24 +21,33 @@ export const useWatchlistStore = create<WatchlistState>()(
     persist(
         (set) => ({
             watchlists: [],
-            createWatchlist: (name, markets) => set((state) => ({
-                watchlists: [
-                    ...state.watchlists,
-                    {
-                        id: crypto.randomUUID(),
-                        name,
-                        markets,
-                        createdAt: Date.now()
-                    }
-                ]
-            })),
+            createWatchlist: (name, markets) => set((state) => {
+                // Ensure unique market IDs
+                const uniqueMarkets = Array.from(new Map(markets.map(m => [m.id, m])).values());
+                return {
+                    watchlists: [
+                        ...state.watchlists,
+                        {
+                            id: crypto.randomUUID(),
+                            name,
+                            markets: uniqueMarkets,
+                            createdAt: Date.now()
+                        }
+                    ]
+                };
+            }),
             deleteWatchlist: (id) => set((state) => ({
                 watchlists: state.watchlists.filter(w => w.id !== id)
             })),
             addMarketToWatchlist: (watchlistId, market) => set((state) => ({
                 watchlists: state.watchlists.map(w =>
                     w.id === watchlistId
-                        ? { ...w, markets: [...w.markets, market] }
+                        ? {
+                            ...w,
+                            markets: w.markets.find(m => m.id === market.id)
+                                ? w.markets
+                                : [...w.markets, market]
+                        }
                         : w
                 )
             })),

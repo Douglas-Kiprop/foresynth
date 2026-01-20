@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { ArrowRight, Activity, TrendingUp } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Watchlist } from "@/stores/watchlist-store";
 import Link from "next/link";
 
@@ -72,6 +73,37 @@ export function WatchlistCard({ watchlist }: WatchlistCardProps) {
             >
                 MONITOR <ArrowRight className="w-4 h-4" />
             </Link>
+
+            {/* Decorative corners */}
+            <div className="absolute top-0 right-0 w-8 h-8 bg-gradient-to-bl from-white/5 to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-8 h-8 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+        </div>
+    );
+}
+
+export function WatchlistCardSkeleton() {
+    return (
+        <div className="relative overflow-hidden rounded-lg border border-sidebar-border bg-sidebar/50 backdrop-blur-sm p-5">
+            {/* Header Skeleton */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <Skeleton className="h-2 w-2 rounded-full" />
+                    <Skeleton className="h-6 w-32" />
+                </div>
+                <Skeleton className="h-4 w-12" />
+            </div>
+
+            {/* Sparkline Skeleton */}
+            <Skeleton className="h-16 w-full mb-4 opacity-30" />
+
+            {/* Footer Stats Skeleton */}
+            <div className="flex items-center justify-between mb-6">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-3 w-20" />
+            </div>
+
+            {/* Action Skeleton */}
+            <Skeleton className="h-10 w-full rounded-sm" />
 
             {/* Decorative corners */}
             <div className="absolute top-0 right-0 w-8 h-8 bg-gradient-to-bl from-white/5 to-transparent pointer-events-none" />

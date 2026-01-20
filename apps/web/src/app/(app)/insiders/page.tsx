@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Radar, RefreshCcw, Search, Loader2, AlertTriangle } from "lucide-react";
-import { InsiderTable } from "@/components/insiders/insider-table";
+import { InsiderTable, InsiderTableSkeleton } from "@/components/insiders/insider-table";
 import { signalsApi, InsiderSignal } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { InsiderTrade } from "@/lib/mock-insiders";
@@ -184,9 +184,8 @@ export default function InsidersPage() {
 
             {/* Loading State */}
             {isLoading && (
-                <div className="flex-1 flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                    <span className="ml-3 font-mono text-foreground/60">SCANNING BLOCKCHAIN...</span>
+                <div className="flex-1 min-h-0">
+                    <InsiderTableSkeleton />
                 </div>
             )}
 

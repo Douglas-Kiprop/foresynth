@@ -8,8 +8,10 @@ from pydantic import BaseModel
 from typing import Optional
 
 from src.core import get_db
+from src.services.polymarket import get_polymarket_service
 
 router = APIRouter()
+pm_service = get_polymarket_service()
 
 
 class AlertConfig(BaseModel):
@@ -78,6 +80,14 @@ async def create_squad(
         raise HTTPException(status_code=500, detail="Failed to create squad")
     
     return response.data[0]
+
+
+@router.get("/leaderboard")
+async def get_global_leaderboard(
+    window: str = "monthly"
+):
+    """Get global trader leaderboard from Polymarket."""
+    return await pm_service.get_leaderboard(timeframe=window)
 
 
 @router.get("/{squad_id}")
@@ -191,3 +201,6 @@ async def update_target_config(
         raise HTTPException(status_code=404, detail="Target not found")
     
     return response.data[0]
+
+
+

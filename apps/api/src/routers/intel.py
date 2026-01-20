@@ -8,10 +8,10 @@ from pydantic import BaseModel
 from typing import Optional
 import httpx
 
-router = APIRouter()
+from src.services.intel import IntelService
 
-# CryptoPanic API for crypto news (free tier available)
-CRYPTOPANIC_API = "https://cryptopanic.com/api/v1/posts/"
+router = APIRouter()
+intel_service = IntelService()
 
 
 class IntelItem(BaseModel):
@@ -38,53 +38,22 @@ async def get_intel_feed(
     limit: int = Query(30, ge=1, le=100),
 ):
     """
-    Get aggregated news/intel feed.
-    
-    Currently sources from CryptoPanic API (free public endpoint).
+    Get aggregated news/intel feed from multiple sources:
+    CryptoPanic, GDELT, and major RSS feeds.
     """
-    # Build params
-    params = {"public": "true"}
-    if filter != "all":
-        params["filter"] = filter
-    if kind != "all":
-        params["kind"] = kind
+    items_raw = await intel_service.get_aggregated_feed(limit=limit)
     
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                CRYPTOPANIC_API,
-                params=params,
-                timeout=15.0
-            )
-            response.raise_for_status()
-            data = response.json()
-    except httpx.HTTPError as e:
-        print(f"CryptoPanic API error: {e}")
-        # Return empty on error (graceful degradation)
-        return IntelFeedResponse(items=[], count=0)
-    except Exception as e:
-        print(f"Unexpected error fetching intel: {e}")
-        return IntelFeedResponse(items=[], count=0)
-    
-    # Transform response
     items = []
-    for post in data.get("results", [])[:limit]:
-        try:
-            source_info = post.get("source", {})
-            source_title = source_info.get("title", "Unknown") if isinstance(source_info, dict) else "Unknown"
-            
-            items.append(IntelItem(
-                id=str(post.get("id", "")),
-                source=source_title,
-                title=post.get("title", ""),
-                url=post.get("url", ""),
-                published_at=post.get("published_at", ""),
-                domain=post.get("domain", ""),
-                kind=post.get("kind", "")
-            ))
-        except Exception as e:
-            print(f"Error parsing intel item: {e}")
-            continue
+    for p in items_raw:
+        items.append(IntelItem(
+            id=p.get("id", ""),
+            source=p.get("source", "Unknown"),
+            title=p.get("title", ""),
+            url=p.get("url", ""),
+            published_at=p.get("published_at", ""),
+            domain=p.get("domain", ""),
+            kind=p.get("kind", "news")
+        ))
     
     return IntelFeedResponse(items=items, count=len(items))
 
@@ -95,7 +64,8 @@ async def get_sources():
     return {
         "sources": [
             {"id": "cryptopanic", "name": "CryptoPanic", "type": "aggregator"},
-            {"id": "polymarket", "name": "Polymarket News", "type": "platform"},
+            {"id": "gdelt", "name": "GDELT Project", "type": "event-db"},
+            {"id": "rss", "name": "Global RSS Feeds", "type": "news-media"},
         ],
         "filters": ["all", "rising", "hot", "bullish", "bearish"],
         "kinds": ["all", "news", "media"]

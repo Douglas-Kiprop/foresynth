@@ -3,6 +3,7 @@
 import { InsiderTrade } from "@/lib/mock-insiders";
 import { cn } from "@/lib/utils";
 import { ExternalLink, TrendingUp, TrendingDown, Clock, AlertTriangle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface InsiderTableProps {
     data: InsiderTrade[];
@@ -170,6 +171,117 @@ export function InsiderTable({ data }: InsiderTableProps) {
                                     <a href={trade.txHash} target="_blank" className="p-1.5 hover:bg-white/10 rounded-sm inline-block text-primary/60 hover:text-primary transition-colors">
                                         <ExternalLink className="w-3 h-3" />
                                     </a>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
+
+export function InsiderTableSkeleton() {
+    return (
+        <div className="w-full border border-sidebar-border rounded-lg bg-black/20 overflow-hidden flex flex-col h-full">
+            <div className="overflow-auto custom-scrollbar flex-1 relative">
+                <table className="w-max text-left border-collapse">
+                    <thead className="bg-sidebar/50 text-foreground/40 font-mono uppercase text-[10px] tracking-wider sticky top-0 z-30 shadow-sm backdrop-blur-md">
+                        <tr>
+                            <th className="p-3 sticky left-0 z-40 bg-black border-r border-sidebar-border w-[220px]">Operator</th>
+                            <th className="p-3 border-r border-sidebar-border/10 w-[80px] text-center">Score</th>
+                            <th className="p-3 w-[250px]">Market</th>
+                            <th className="p-3">Side</th>
+                            <th className="p-3 text-right">Size</th>
+                            <th className="p-3 text-right">Entry</th>
+                            <th className="p-3 text-right">Avg</th>
+                            <th className="p-3 text-right">Curr</th>
+                            <th className="p-3">Time</th>
+                            <th className="p-3 border-l border-sidebar-border/20 text-right">Age</th>
+                            <th className="p-3 text-right">Wake Time</th>
+                            <th className="p-3 text-center">Speed %</th>
+                            <th className="p-3 border-l border-sidebar-border/20 text-right">Mkt Vol</th>
+                            <th className="p-3 text-center">Vol Conc.</th>
+                            <th className="p-3 text-right">Mkt PnL</th>
+                            <th className="p-3 border-l border-sidebar-border/20 text-right">Tot PnL</th>
+                            <th className="p-3 text-right">Tot Vol</th>
+                            <th className="p-3 text-center">Trades</th>
+                            <th className="p-3 text-center">Uniq Mkts</th>
+                            <th className="p-3 border-l border-sidebar-border/20 text-center">Active</th>
+                            <th className="p-3 text-center">Verify</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-sidebar-border/40 font-mono">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <tr key={i} className="hover:bg-white/5 transition-colors group">
+                                <td className="p-3 sticky left-0 z-30 bg-black border-r border-sidebar-border">
+                                    <div className="flex items-center gap-3">
+                                        <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                                        <div className="space-y-1">
+                                            <Skeleton className="h-4 w-24" />
+                                            <Skeleton className="h-2.5 w-32" />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="p-3 border-r border-sidebar-border/10">
+                                    <Skeleton className="h-1.5 w-full rounded-full" />
+                                </td>
+                                <td className="p-3">
+                                    <Skeleton className="h-4 w-48" />
+                                </td>
+                                <td className="p-3">
+                                    <Skeleton className="h-4 w-10" />
+                                </td>
+                                <td className="p-3">
+                                    <Skeleton className="h-4 w-12 ml-auto" />
+                                </td>
+                                <td className="p-3">
+                                    <Skeleton className="h-4 w-10 ml-auto" />
+                                </td>
+                                <td className="p-3">
+                                    <Skeleton className="h-4 w-10 ml-auto" />
+                                </td>
+                                <td className="p-3">
+                                    <Skeleton className="h-4 w-10 ml-auto" />
+                                </td>
+                                <td className="p-3">
+                                    <Skeleton className="h-4 w-16" />
+                                </td>
+                                <td className="p-3 border-l border-sidebar-border/20">
+                                    <Skeleton className="h-4 w-8 ml-auto" />
+                                </td>
+                                <td className="p-3">
+                                    <Skeleton className="h-4 w-16 ml-auto" />
+                                </td>
+                                <td className="p-3">
+                                    <Skeleton className="h-4 w-10 mx-auto" />
+                                </td>
+                                <td className="p-3 border-l border-sidebar-border/20">
+                                    <Skeleton className="h-4 w-12 ml-auto" />
+                                </td>
+                                <td className="p-3">
+                                    <Skeleton className="h-4 w-10 mx-auto" />
+                                </td>
+                                <td className="p-3">
+                                    <Skeleton className="h-4 w-16 ml-auto" />
+                                </td>
+                                <td className="p-3 border-l border-sidebar-border/20">
+                                    <Skeleton className="h-4 w-16 ml-auto" />
+                                </td>
+                                <td className="p-3">
+                                    <Skeleton className="h-4 w-12 ml-auto" />
+                                </td>
+                                <td className="p-3 text-center">
+                                    <Skeleton className="h-4 w-6 mx-auto" />
+                                </td>
+                                <td className="p-3 text-center">
+                                    <Skeleton className="h-4 w-6 mx-auto" />
+                                </td>
+                                <td className="p-3 border-l border-sidebar-border/20 text-center">
+                                    <Skeleton className="h-2 w-2 rounded-full mx-auto" />
+                                </td>
+                                <td className="p-3 text-center">
+                                    <Skeleton className="h-3 w-3 mx-auto" />
                                 </td>
                             </tr>
                         ))}

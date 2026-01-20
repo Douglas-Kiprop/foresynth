@@ -1,14 +1,19 @@
 "use client";
 
 import { useWatchlistStore } from "@/stores/watchlist-store";
-import { WatchlistCard } from "@/components/watchlist/watchlist-card";
+import { WatchlistCard, WatchlistCardSkeleton } from "@/components/watchlist/watchlist-card";
 import { Plus, Search, LayoutGrid } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SynthesizerModal } from "@/components/watchlist/synthesizer-modal";
 
 export default function WatchlistsPage() {
-    const { watchlists } = useWatchlistStore();
+    const { watchlists, createWatchlist } = useWatchlistStore();
     const [isSynthesizerOpen, setIsSynthesizerOpen] = useState(false);
+    const [isHydrated, setIsHydrated] = useState(false);
+
+    useEffect(() => {
+        setIsHydrated(true);
+    }, []);
 
     return (
         <div className="space-y-8 animate-fade-in">
@@ -34,7 +39,13 @@ export default function WatchlistsPage() {
             </div>
 
             {/* Grid Content */}
-            {watchlists.length === 0 ? (
+            {!isHydrated ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <WatchlistCardSkeleton key={i} />
+                    ))}
+                </div>
+            ) : watchlists.length === 0 ? (
                 <div className="h-[400px] flex flex-col items-center justify-center border border-dashed border-sidebar-border rounded-lg bg-sidebar/20">
                     <div className="p-4 rounded-full bg-primary/10 mb-6 animate-pulse">
                         <Search className="w-8 h-8 text-primary shadow-neon" />
@@ -57,7 +68,13 @@ export default function WatchlistsPage() {
             )}
 
             {isSynthesizerOpen && (
-                <SynthesizerModal onClose={() => setIsSynthesizerOpen(false)} />
+                <SynthesizerModal
+                    onClose={() => setIsSynthesizerOpen(false)}
+                    onConfirm={(name, markets) => {
+                        createWatchlist(name, markets);
+                        setIsSynthesizerOpen(false);
+                    }}
+                />
             )}
         </div>
     );

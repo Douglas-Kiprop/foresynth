@@ -4,8 +4,8 @@ export type Market = {
     outcome: string; // e.g., "Yes" or "Trump"
     probability: number; // 0-100
     volume: number;
-    endDate: string; // ISO date
-    createdDate: string; // ISO date
+    endDate: string | null; // ISO date
+    createdDate?: string; // ISO date (Optional)
     history: { value: number; timestamp: number }[]; // For sparklines
 };
 

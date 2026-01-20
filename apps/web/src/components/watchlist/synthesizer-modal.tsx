@@ -58,9 +58,11 @@ export function SynthesizerModal({ onClose, onConfirm, initialName = "", mode = 
                     volume: m.volume,
                     outcome: "Yes",
                     probability: Math.round(m.yes_price * 100),
-                    change24h: 0,
-                    category: m.category || "Other",
-                    sparklineData: Array.from({ length: 20 }, () => Math.round(m.yes_price * 100) + (Math.random() * 10 - 5)),
+                    endDate: m.end_date || null,
+                    history: Array.from({ length: 20 }, (_, i) => ({
+                        value: Math.round(m.yes_price * 100) + (Math.random() * 10 - 5),
+                        timestamp: Date.now() - (20 - i) * 86400000
+                    })),
                 }));
                 setResults(markets);
             } catch (err) {

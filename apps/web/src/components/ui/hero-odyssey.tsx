@@ -316,7 +316,6 @@ export const HeroSection: React.FC = () => {
                 <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full absolute inset-0 z-10 pointer-events-none">
                     <motion.div variants={itemVariants}><FeatureItem name="Polymarket" value="Data Source" position="left-[10%] sm:left-[15%] top-[25%]" /></motion.div>
                     <motion.div variants={itemVariants}><FeatureItem name="AI Agents" value="Analysis" position="left-[5%] sm:left-[20%] top-[60%]" /></motion.div>
-                    <motion.div variants={itemVariants}><FeatureItem name="Real-time" value="Streaming" position="right-[10%] sm:right-[15%] top-[30%]" /></motion.div>
                     <motion.div variants={itemVariants}><FeatureItem name="Insights" value="Predictive" position="right-[5%] sm:right-[20%] top-[65%]" /></motion.div>
                 </motion.div>
 

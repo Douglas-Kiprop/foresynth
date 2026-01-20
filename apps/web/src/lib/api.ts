@@ -199,6 +199,10 @@ export const squadsApi = {
     removeTarget: async (squadId: string, targetId: string): Promise<void> => {
         return fetchApi(`/squads/${squadId}/targets/${targetId}`, { method: "DELETE" });
     },
+
+    getLeaderboard: async (timeframe = "monthly"): Promise<any[]> => {
+        return fetchApi(`/squads/leaderboard?window=${timeframe}`);
+    },
 };
 
 // ============================================================================

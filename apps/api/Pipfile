@@ -12,6 +12,9 @@ python-dotenv = "*"
 httpx = "*"
 pydantic = "*"
 pydantic-settings = "*"
+feedparser = "*"
+redis = "*"
+hiredis = "*"
 
 [dev-packages]
 

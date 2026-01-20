@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Radio, Search, RadioReceiver, Loader2 } from "lucide-react";
-import { NewsCard } from "@/components/news/news-card";
+import { NewsCard, NewsCardSkeleton } from "@/components/news/news-card";
 import { intelApi, IntelItem } from "@/lib/api";
 
 const TOPICS = ["All", "US Election", "Fed", "Crypto", "Geopolitics", "AI", "Tech"];
@@ -98,9 +98,10 @@ export default function NewsPage() {
 
             {/* Loading State */}
             {isLoading && (
-                <div className="flex items-center justify-center py-20">
-                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                    <span className="ml-3 font-mono text-foreground/60">SCANNING FREQUENCIES...</span>
+                <div className="flex flex-col gap-4 max-w-4xl">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                        <NewsCardSkeleton key={i} />
+                    ))}
                 </div>
             )}
 

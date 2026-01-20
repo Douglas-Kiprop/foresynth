@@ -124,13 +124,31 @@ export default function WatchlistDetailPage({ params }: { params: Promise<{ id: 
                                         <span className="flex items-center gap-1"><BarChart3 className="w-3 h-3" /> VOLUME</span>
                                         <span className="text-foreground">${(market.volume / 1000000).toFixed(1)}M</span>
                                     </div>
-                                    <div className="flex flex-col gap-1">
-                                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> CREATED</span>
-                                        <span className="text-foreground">{format(new Date(market.createdDate), 'MMM d, yyyy')}</span>
-                                    </div>
+                                    {market.createdDate && (
+                                        <div className="flex flex-col gap-1">
+                                            <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> CREATED</span>
+                                            <span className="text-foreground">
+                                                {(() => {
+                                                    try {
+                                                        return format(new Date(market.createdDate), 'MMM d, yyyy');
+                                                    } catch (e) {
+                                                        return "N/A";
+                                                    }
+                                                })()}
+                                            </span>
+                                        </div>
+                                    )}
                                     <div className="flex flex-col gap-1">
                                         <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" /> END DATE</span>
-                                        <span className="text-foreground">{format(new Date(market.endDate), 'MMM d, yyyy')}</span>
+                                        <span className="text-foreground">
+                                            {(() => {
+                                                try {
+                                                    return format(new Date(market.endDate), 'MMM d, yyyy');
+                                                } catch (e) {
+                                                    return "N/A";
+                                                }
+                                            })()}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

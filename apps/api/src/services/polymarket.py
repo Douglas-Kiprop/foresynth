@@ -4,6 +4,8 @@ Foresynth API - Polymarket Service
 Client for interacting with Polymarket APIs (Gamma, CLOB).
 """
 import httpx
+import asyncio
+import json
 from typing import Optional
 from pydantic import BaseModel
 
@@ -154,9 +156,13 @@ class PolymarketService:
         """Get trending markets by volume."""
         cache_key = f"pm_trending:{limit}"
         
-        cached = self.cache.get(cache_key)
-        if cached:
-            return [MarketData(**m) for m in cached]
+        if self.cache:
+            try:
+                cached = await asyncio.to_thread(self.cache.get, cache_key)
+                if cached:
+                    return [MarketData(**m) for m in json.loads(cached)]
+            except Exception as e:
+                print(f"PolymarketService: Cache read error: {e}")
         
         async with httpx.AsyncClient() as client:
             response = await client.get(
@@ -190,9 +196,56 @@ class PolymarketService:
             ))
         
         # Cache for 2 minutes
-        self.cache.setex(cache_key, 120, [m.model_dump() for m in markets])
+        if self.cache:
+            await asyncio.to_thread(self.cache.setex, cache_key, 120, json.dumps([m.model_dump() for m in markets]))
         
         return markets
+
+    async def get_leaderboard(self, timeframe: str = "monthly") -> list[dict]:
+        """Fetch global leaderboard from Polymarket Data API."""
+        # Mapping timeframe to Polymarket data-api window: day, week, month, all
+        period_map = {
+            "daily": "day",
+            "weekly": "week",
+            "monthly": "month",
+            "all": "all"
+        }
+        time_period = period_map.get(timeframe, "month")
+        
+        cache_key = f"pm_leaderboard:{time_period}"
+        
+        # Check cache
+        if self.cache:
+            try:
+                cached = await asyncio.to_thread(self.cache.get, cache_key)
+                if cached:
+                    return json.loads(cached)
+            except Exception as e:
+                print(f"PolymarketService: Cache read error: {e}")
+
+        url = "https://data-api.polymarket.com/v1/leaderboard"
+        params = {
+            "timePeriod": time_period,
+            "orderBy": "PNL",
+            "limit": 20,
+            "offset": 0,
+            "category": "overall"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, params=params, timeout=10.0)
+                response.raise_for_status()
+                data = response.json()
+                
+                # Cache for 1 hour
+                if self.cache and data:
+                    await asyncio.to_thread(self.cache.setex, cache_key, 3600, json.dumps(data))
+                
+                return data
+        except Exception as e:
+            print(f"PolymarketService: Leaderboard fetch error: {e}")
+            return []
 
 
 # Singleton

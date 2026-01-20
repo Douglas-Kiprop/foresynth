@@ -3,6 +3,7 @@
 import { NewsItem } from "@/lib/mock-news";
 import { cn } from "@/lib/utils";
 import { ExternalLink, Users, Globe, Zap, Twitter } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface NewsCardProps {
     item: NewsItem;
@@ -65,5 +66,32 @@ export function NewsCard({ item }: NewsCardProps) {
                 </div>
             </div>
         </a>
+    );
+}
+
+export function NewsCardSkeleton() {
+    return (
+        <div className="flex items-start gap-4 p-4 border border-sidebar-border bg-black/20 rounded-lg">
+            {/* Thumbnail Skeleton */}
+            <Skeleton className="shrink-0 w-24 h-24 rounded-md" />
+
+            {/* Content Skeleton */}
+            <div className="flex-1 min-w-0 flex flex-col justify-between h-24 py-1">
+                <div className="space-y-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-5 w-1/2" />
+                </div>
+
+                {/* Meta Skeleton */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-1 w-1 rounded-full" />
+                        <Skeleton className="h-3 w-16" />
+                    </div>
+                    <Skeleton className="w-2 h-2 rounded-full" />
+                </div>
+            </div>
+        </div>
     );
 }

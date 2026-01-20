@@ -20,9 +20,10 @@ class Settings(BaseSettings):
     # Upstash Redis
     upstash_redis_url: str
     
-    # Polymarket (Optional)
+    # External APIs
     polymarket_api_key: str = ""
     polymarket_api_secret: str = ""
+    cryptopanic_api_key: str = ""
     
     # Server
     debug: bool = True
