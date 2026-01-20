@@ -89,7 +89,7 @@ export function generateInsiders(count: number = 20): InsiderTrade[] {
                 "ETH ETF Approval Odds"
             ]),
             marketUrl: "#",
-            side: Math.random() > 0.5 ? "YES" : "NO",
+            side: (Math.random() > 0.5 ? "YES" : "NO") as "YES" | "NO",
             size: size,
             priceEntry,
             priceAverage: Math.min(0.99, priceAverage),

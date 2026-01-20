@@ -128,26 +128,14 @@ export default function WatchlistDetailPage({ params }: { params: Promise<{ id: 
                                         <div className="flex flex-col gap-1">
                                             <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> CREATED</span>
                                             <span className="text-foreground">
-                                                {(() => {
-                                                    try {
-                                                        return format(new Date(market.createdDate), 'MMM d, yyyy');
-                                                    } catch (e) {
-                                                        return "N/A";
-                                                    }
-                                                })()}
+                                                {market.createdDate ? format(new Date(market.createdDate), 'MMM d, yyyy') : "N/A"}
                                             </span>
                                         </div>
                                     )}
                                     <div className="flex flex-col gap-1">
                                         <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" /> END DATE</span>
                                         <span className="text-foreground">
-                                            {(() => {
-                                                try {
-                                                    return format(new Date(market.endDate), 'MMM d, yyyy');
-                                                } catch (e) {
-                                                    return "N/A";
-                                                }
-                                            })()}
+                                            {market.endDate ? format(new Date(market.endDate), 'MMM d, yyyy') : "N/A"}
                                         </span>
                                     </div>
                                 </div>
