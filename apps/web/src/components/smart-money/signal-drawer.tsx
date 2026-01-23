@@ -41,25 +41,25 @@ export function SignalInterceptDrawer({ trader, onClose, onSave }: SignalInterce
         }
     };
 
-    const handleCreateSquad = () => {
+    const handleCreateSquad = async () => {
         if (newSquadName) {
-            createSquad(newSquadName);
-            // We assume the new squad is added to the store state. 
-            // Ideally we would select it, but we need the ID. 
-            // For simplicity/mock, user has to select it from dropdown after creation updates state.
-            // But store update is instant in React.
+            const newId = await createSquad(newSquadName);
+            if (newId) {
+                setSelectedSquadId(newId);
+            }
             setNewSquadName("");
             setIsCreatingSquad(false);
         }
     };
 
-    const handleConfirm = () => {
-        onSave({
+    const handleConfirm = async () => {
+        await onSave({
             minTradeSize: minSize,
             onlyBuyOrders: onlyBuy,
             assetClassFilter: selectedCategories.length > 0 ? selectedCategories : undefined,
             channels
         }, selectedSquadId);
+        onClose();
     };
 
     return (

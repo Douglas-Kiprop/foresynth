@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -193,32 +192,6 @@ export default function AccountPage() {
                     ERROR: {error}
                 </div>
             )}
-
-            <section className="p-6 rounded-sm bg-black/40 border border-white/5 space-y-4">
-                <h2 className="text-sm font-mono text-foreground/40 uppercase tracking-widest border-b border-white/5 pb-2">
-                    TACTICAL PREFERENCES
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 opacity-60">
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-mono text-foreground/40 uppercase">Default Sensitivity</label>
-                        <div className="p-3 border border-white/10 rounded-sm font-mono text-sm">
-                            $1,000+ TRADES
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-mono text-foreground/40 uppercase">Signal Priority</label>
-                        <div className="p-3 border border-white/10 rounded-sm font-mono text-sm">
-                            HIGH INTENSITY
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-mono text-foreground/40 uppercase">Auto-Acknowledge</label>
-                        <div className="p-3 border border-white/10 rounded-sm font-mono text-sm">
-                            DISABLED
-                        </div>
-                    </div>
-                </div>
-            </section>
         </div>
     );
 }

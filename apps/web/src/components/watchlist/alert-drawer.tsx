@@ -1,22 +1,25 @@
 "use client";
 
-import { X, Bell, Zap, Volume2, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { X, Bell, Zap, Volume2, ArrowUpCircle, ArrowDownCircle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Market } from "@/lib/mock-data";
 import { useState } from "react";
+import { PriceAlert } from "@/stores/watchlist-store";
 
 interface AlertDrawerProps {
     market: Market;
+    existingAlert?: PriceAlert;
     onClose: () => void;
     onSave: (config: any) => void;
+    onDelete: () => void;
 }
 
 type TriggerType = 'above' | 'below';
 
-export function AlertDrawer({ market, onClose, onSave }: AlertDrawerProps) {
-    const [triggerType, setTriggerType] = useState<TriggerType>('above');
-    const [threshold, setThreshold] = useState(market.probability);
-    const [channels, setChannels] = useState(["app"]);
+export function AlertDrawer({ market, existingAlert, onClose, onSave, onDelete }: AlertDrawerProps) {
+    const [triggerType, setTriggerType] = useState<TriggerType>(existingAlert?.condition || 'above');
+    const [threshold, setThreshold] = useState(existingAlert?.threshold || market.probability);
+    const [channels, setChannels] = useState<string[]>(existingAlert?.channels || ["app"]);
 
     const toggleChannel = (channel: string) => {
         if (channels.includes(channel)) {
@@ -42,7 +45,7 @@ export function AlertDrawer({ market, onClose, onSave }: AlertDrawerProps) {
                     <div>
                         <h2 className="font-orbitron font-bold text-xl text-primary flex items-center gap-2">
                             <Bell className="w-5 h-5" />
-                            ALERT CONFIG
+                            {existingAlert ? "EDIT CONFIG" : "ALERT CONFIG"}
                         </h2>
                         <p className="text-xs font-mono text-foreground/40 mt-1 truncate max-w-[300px]">
                             {market.question}
@@ -164,13 +167,30 @@ export function AlertDrawer({ market, onClose, onSave }: AlertDrawerProps) {
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-sidebar-border bg-black/20">
+                <div className="p-6 border-t border-sidebar-border bg-black/20 space-y-4">
                     <button
-                        onClick={() => onSave({ type: triggerType, threshold, channels })}
+                        onClick={async () => {
+                            await onSave({ type: triggerType, threshold, channels });
+                            onClose();
+                        }}
                         className="w-full py-3 bg-primary text-black font-bold font-orbitron tracking-widest rounded-sm shadow-neon hover:bg-white transition-colors"
                     >
-                        ACTIVATE MONITORING
+                        {existingAlert ? "UPDATE CONFIGURATION" : "ACTIVATE MONITORING"}
                     </button>
+
+                    {existingAlert && (
+                        <button
+                            onClick={() => {
+                                if (confirm("Terminate this price alert monitoring?")) {
+                                    onDelete();
+                                }
+                            }}
+                            className="w-full py-3 bg-red-500/10 border border-red-500/50 text-red-500 font-bold font-orbitron tracking-widest rounded-sm hover:bg-red-500/20 transition-all flex items-center justify-center gap-2"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            TERMINATE MONITORING
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

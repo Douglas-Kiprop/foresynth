@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from typing import Optional
 
-from src.core import get_db, get_cache
+from src.core import get_db, get_async_cache
 from src.core.security import get_current_user
 from src.services.polymarket import get_polymarket_service
 import asyncio
@@ -104,13 +104,13 @@ async def get_smart_money_list(
     Aggregates global leaderboard with closed position history 
     to calculate win/loss metrics.
     """
-    cache = get_cache()
+    cache = get_async_cache()
     cache_key = f"smart_money_list:{limit}:{min_trades}"
     
     # Check cache
     if cache:
         try:
-            cached = await asyncio.to_thread(cache.get, cache_key)
+            cached = await cache.get(cache_key)
             if cached:
                 return json.loads(cached)
         except Exception as e:
@@ -180,7 +180,7 @@ async def get_smart_money_list(
     # Cache result for 10 minutes
     if cache:
         try:
-            await asyncio.to_thread(cache.setex, cache_key, 600, json.dumps(result))
+            await cache.setex(cache_key, 600, json.dumps(result))
         except Exception as e:
             print(f"SmartMoney: Cache write error: {e}")
             

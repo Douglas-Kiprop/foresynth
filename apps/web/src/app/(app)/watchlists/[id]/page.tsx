@@ -17,7 +17,7 @@ export default function WatchlistDetailPage({ params }: { params: Promise<{ id: 
     const id = unwrappedParams.id;
 
     const router = useRouter();
-    const { watchlists, deleteWatchlist, addMarketToWatchlist, removeMarketFromWatchlist } = useWatchlistStore();
+    const { watchlists, alerts, deleteWatchlist, addMarketToWatchlist, removeMarketFromWatchlist, loadPriceAlerts, deletePriceAlert } = useWatchlistStore();
 
     const [watchlist, setWatchlist] = useState<any>(null);
     const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
@@ -28,11 +28,9 @@ export default function WatchlistDetailPage({ params }: { params: Promise<{ id: 
         const found = watchlists.find(w => w.id === id);
         if (found) {
             setWatchlist(found);
-        } else {
-            // Only redirect if we are sure it's loaded and truly missing.
-            // For now, if undefined, we just wait.
         }
-    }, [id, watchlists]);
+        loadPriceAlerts();
+    }, [id, watchlists, loadPriceAlerts]);
 
     const handleDeleteWatchlist = () => {
         if (confirm("Terminate this watchlist signal? This action cannot be undone.")) {
@@ -160,10 +158,15 @@ export default function WatchlistDetailPage({ params }: { params: Promise<{ id: 
                             <div className="flex md:flex-col border-t md:border-t-0 md:border-l border-sidebar-border w-full md:w-16 divide-x md:divide-x-0 md:divide-y divide-sidebar-border bg-black/40 relative">
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setSelectedMarket(market); }}
-                                    className="flex-1 p-3 flex items-center justify-center hover:bg-primary hover:text-black transition-colors"
-                                    title="Configure Alerts"
+                                    className={cn(
+                                        "flex-1 p-3 flex items-center justify-center transition-all duration-300",
+                                        alerts.some(a => a.market_id === market.clob_token_id || a.market_id === market.id)
+                                            ? "bg-primary text-black shadow-neon"
+                                            : "hover:bg-primary/20 hover:text-primary"
+                                    )}
+                                    title={alerts.some(a => a.market_id === market.clob_token_id || a.market_id === market.id) ? "Alert Active" : "Configure Alerts"}
                                 >
-                                    <Bell className="w-5 h-5" />
+                                    <Bell className={cn("w-5 h-5", alerts.some(a => a.market_id === market.clob_token_id || a.market_id === market.id) && "animate-bounce-subtle")} />
                                 </button>
 
                                 {/* Settings Toggle */}
@@ -207,10 +210,36 @@ export default function WatchlistDetailPage({ params }: { params: Promise<{ id: 
             {selectedMarket && (
                 <AlertDrawer
                     market={selectedMarket}
+                    existingAlert={alerts.find(a => a.market_id === selectedMarket.clob_token_id || a.market_id === selectedMarket.id)}
                     onClose={() => setSelectedMarket(null)}
-                    onSave={(config) => {
-                        console.log("Saving Alert Config", config);
-                        setSelectedMarket(null);
+                    onSave={async (config) => {
+                        try {
+                            const trackingId = selectedMarket.clob_token_id || selectedMarket.id;
+
+                            // Delete if exists, then create new
+                            if (alerts.some(a => a.market_id === trackingId)) {
+                                await deletePriceAlert(trackingId);
+                            }
+
+                            await useWatchlistStore.getState().createPriceAlert(
+                                trackingId,
+                                config.type,
+                                config.threshold,
+                                config.channels
+                            );
+                            setSelectedMarket(null);
+                        } catch (err) {
+                            console.error("Failed to activate monitoring:", err);
+                        }
+                    }}
+                    onDelete={async () => {
+                        try {
+                            const trackingId = selectedMarket.clob_token_id || selectedMarket.id;
+                            await deletePriceAlert(trackingId);
+                            setSelectedMarket(null);
+                        } catch (err) {
+                            console.error("Failed to terminate alert:", err);
+                        }
                     }}
                 />
             )}

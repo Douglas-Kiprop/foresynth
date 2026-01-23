@@ -23,10 +23,10 @@ export function AddWalletModal({ squadId, onClose, onAdd }: AddWalletModalProps)
     const [selectedCategories, setSelectedCategories] = useState<string[]>(CATEGORIES);
     const [channels, setChannels] = useState<("in-app" | "telegram" | "discord")[]>(["in-app"]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (address.trim()) {
-            onAdd(address, {
+            await onAdd(address, {
                 minTradeSize: minSize,
                 onlyBuyOrders: onlyBuy,
                 assetClassFilter: selectedCategories,

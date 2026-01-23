@@ -1,18 +1,32 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSmartMoneyStore } from "@/stores/smart-money-store";
 import { MOCK_TRADERS, TraderProfile } from "@/lib/mock-traders";
-import { Trash2, ShieldAlert, Bell, BellOff, Plus, FilePlus2, Wallet } from "lucide-react";
+import { Trash2, ShieldAlert, Bell, BellOff, Plus, FilePlus2, Wallet, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CreateSquadModal } from "@/components/smart-money/create-squad-modal";
 import { AddWalletModal } from "@/components/smart-money/add-wallet-modal";
 
 export function TargetSquadList() {
-    const { squads, removeTargetFromSquad, deleteSquad, toggleSquadAlerts, createSquad, addTargetToSquad } = useSmartMoneyStore();
+    const {
+        squads, isLoading, loadSquads, removeTargetFromSquad,
+        deleteSquad, toggleSquadAlerts, createSquad, addTargetToSquad
+    } = useSmartMoneyStore();
 
     const [isCreatingSquad, setIsCreatingSquad] = useState(false);
     const [addingToSquadId, setAddingToSquadId] = useState<string | null>(null);
+
+    useEffect(() => {
+        loadSquads();
+    }, []);
+
+    if (isLoading && squads.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20">
+                <RefreshCw className="w-8 h-8 text-primary animate-spin mb-4" />
+                <p className="text-foreground/40 font-mono text-sm">LOADING TACTICAL SQUADS...</p>
+            </div>
+        );
+    }
 
     // Helper to rehydrate trader data or use manual data
     /* const getProfile = (target: any) => {

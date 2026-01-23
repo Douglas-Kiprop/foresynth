@@ -60,3 +60,19 @@ h6 {
 ::-webkit-scrollbar-thumb:hover {
   background: #06b6d4;
 }
+
+@keyframes bounce-subtle {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@utility animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}

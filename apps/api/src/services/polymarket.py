@@ -9,7 +9,7 @@ import json
 from typing import Optional
 from pydantic import BaseModel
 
-from src.core import get_cache
+from src.core import get_async_cache
 
 # API Base URLs
 GAMMA_API_BASE = "https://gamma-api.polymarket.com"
@@ -30,20 +30,16 @@ class MarketData(BaseModel):
     category: Optional[str] = None
     description: Optional[str] = None
     active: bool = True
+    clob_token_id: Optional[str] = None
 
 
 class PolymarketService:
     """
     Service for interacting with Polymarket APIs.
-    
-    Provides:
-    - Market search and details
-    - Price data
-    - Orderbook data (CLOB)
     """
     
     def __init__(self):
-        self.cache = get_cache()
+        self.cache = get_async_cache()
     
     async def search_markets(
         self,
@@ -55,8 +51,9 @@ class PolymarketService:
         cache_key = f"pm_search:{query}:{limit}"
         
         # Check cache
-        cached = self.cache.get(cache_key)
-        if cached:
+        cached_json = await self.cache.get(cache_key)
+        if cached_json:
+            cached = json.loads(cached_json)
             return [MarketData(**m) for m in cached]
         
         params = {
@@ -78,6 +75,7 @@ class PolymarketService:
         markets = []
         for m in data:
             prices = m.get("outcomePrices", [0.5, 0.5])
+            clob_ids = json.loads(m.get("clobTokenIds", "[]"))
             markets.append(MarketData(
                 id=m.get("id", ""),
                 question=m.get("question", ""),
@@ -90,11 +88,12 @@ class PolymarketService:
                 image=m.get("image"),
                 category=m.get("category"),
                 description=m.get("description"),
-                active=m.get("active", True)
+                active=m.get("active", True),
+                clob_token_id=clob_ids[0] if clob_ids else None
             ))
         
         # Cache for 5 minutes
-        self.cache.setex(cache_key, 300, [m.model_dump() for m in markets])
+        await self.cache.setex(cache_key, 300, json.dumps([m.model_dump() for m in markets]))
         
         return markets
     
@@ -102,8 +101,9 @@ class PolymarketService:
         """Get detailed market data by ID."""
         cache_key = f"pm_market:{market_id}"
         
-        cached = self.cache.get(cache_key)
-        if cached:
+        cached_json = await self.cache.get(cache_key)
+        if cached_json:
+            cached = json.loads(cached_json)
             return MarketData(**cached)
         
         try:
@@ -118,6 +118,7 @@ class PolymarketService:
             return None
         
         prices = m.get("outcomePrices", [0.5, 0.5])
+        clob_ids = json.loads(m.get("clobTokenIds", "[]"))
         market = MarketData(
             id=m.get("id", ""),
             question=m.get("question", ""),
@@ -130,11 +131,12 @@ class PolymarketService:
             image=m.get("image"),
             category=m.get("category"),
             description=m.get("description"),
-            active=m.get("active", True)
+            active=m.get("active", True),
+            clob_token_id=clob_ids[0] if clob_ids else None
         )
         
         # Cache for 1 minute
-        self.cache.setex(cache_key, 60, market.model_dump())
+        await self.cache.setex(cache_key, 60, json.dumps(market.model_dump()))
         
         return market
     
@@ -158,7 +160,7 @@ class PolymarketService:
         
         if self.cache:
             try:
-                cached = await asyncio.to_thread(self.cache.get, cache_key)
+                cached = await self.cache.get(cache_key)
                 if cached:
                     return [MarketData(**m) for m in json.loads(cached)]
             except Exception as e:
@@ -197,7 +199,7 @@ class PolymarketService:
         
         # Cache for 2 minutes
         if self.cache:
-            await asyncio.to_thread(self.cache.setex, cache_key, 120, json.dumps([m.model_dump() for m in markets]))
+            await self.cache.setex(cache_key, 120, json.dumps([m.model_dump() for m in markets]))
         
         return markets
 
@@ -217,7 +219,7 @@ class PolymarketService:
         # Check cache
         if self.cache:
             try:
-                cached = await asyncio.to_thread(self.cache.get, cache_key)
+                cached = await self.cache.get(cache_key)
                 if cached:
                     return json.loads(cached)
             except Exception as e:
@@ -240,7 +242,7 @@ class PolymarketService:
                 
                 # Cache for 1 hour
                 if self.cache and data:
-                    await asyncio.to_thread(self.cache.setex, cache_key, 3600, json.dumps(data))
+                    await self.cache.setex(cache_key, 3600, json.dumps(data))
                 
                 return data
         except Exception as e:
@@ -257,7 +259,7 @@ class PolymarketService:
         
         if self.cache:
             try:
-                cached = await asyncio.to_thread(self.cache.get, cache_key)
+                cached = await self.cache.get(cache_key)
                 if cached:
                     return json.loads(cached)
             except Exception as e:
@@ -279,11 +281,60 @@ class PolymarketService:
                 
                 # Cache for 10 minutes (completed trades don't change, but new ones happen)
                 if self.cache and data:
-                    await asyncio.to_thread(self.cache.setex, cache_key, 600, json.dumps(data))
+                    await self.cache.setex(cache_key, 600, json.dumps(data))
                 
                 return data
         except Exception as e:
             print(f"PolymarketService: Closed positions fetch error for {wallet_address}: {e}")
+            return []
+
+    async def get_batch_prices(self, token_ids: list[str]) -> dict[str, float]:
+        """Fetch current mid prices for multiple tokens in one call."""
+        if not token_ids:
+            return {}
+            
+        url = f"{CLOB_API_BASE}/prices-history"
+        results = {}
+        
+        # Polymarket CLOB /prices-history or /prices
+        # For tracking efficiency, we use the mid price from /prices for multiple tokens if possible
+        # Or iterate if the API doesn't support bulk token_id in one param
+        
+        async with httpx.AsyncClient() as client:
+            # We fetch individually for now as CLOB API usually prefers one token_id per request 
+            # for price history/details, but we'll optimize by running them in parallel
+            tasks = []
+            for tid in token_ids:
+                tasks.append(client.get(f"{CLOB_API_BASE}/price", params={"token_id": tid}, timeout=5.0))
+            
+            responses = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            for tid, resp in zip(token_ids, responses):
+                if isinstance(resp, httpx.Response) and resp.status_code == 200:
+                    try:
+                        data = resp.json()
+                        # data usually contains {"price": "0.55"}
+                        results[tid] = float(data.get("price", 0))
+                    except (ValueError, TypeError):
+                        pass
+        
+        return results
+
+    async def get_trades(self, wallet_address: str, limit: int = 5) -> list[dict]:
+        """Fetch latest trades for a specific wallet address from Data API."""
+        url = "https://data-api.polymarket.com/v1/trades"
+        params = {
+            "user": wallet_address,
+            "limit": limit,
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, params=params, timeout=10.0)
+                response.raise_for_status()
+                return response.json()
+        except Exception as e:
+            print(f"PolymarketService: Trade fetch error for {wallet_address}: {e}")
             return []
 
 

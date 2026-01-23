@@ -59,6 +59,7 @@ export function SynthesizerModal({ onClose, onConfirm, initialName = "", mode = 
                     outcome: "Yes",
                     probability: Math.round(m.yes_price * 100),
                     endDate: m.end_date || null,
+                    clob_token_id: m.clob_token_id,
                     history: Array.from({ length: 20 }, (_, i) => ({
                         value: Math.round(m.yes_price * 100) + (Math.random() * 10 - 5),
                         timestamp: Date.now() - (20 - i) * 86400000

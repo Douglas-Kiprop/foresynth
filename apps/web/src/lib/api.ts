@@ -65,6 +65,7 @@ export interface Market {
     end_date?: string;
     image?: string;
     category?: string;
+    clob_token_id?: string;
 }
 
 export const marketsApi = {

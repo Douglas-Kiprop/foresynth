@@ -7,6 +7,7 @@ export type Market = {
     endDate: string | null; // ISO date
     createdDate?: string; // ISO date (Optional)
     history: { value: number; timestamp: number }[]; // For sparklines
+    clob_token_id?: string;
 };
 
 export const MOCK_MARKETS: Market[] = [

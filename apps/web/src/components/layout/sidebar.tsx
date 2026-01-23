@@ -6,8 +6,8 @@ import { LayoutDashboard, Users, Zap, Newspaper, Bot, ChevronLeft, ChevronRight,
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-context";
 import { useAuth } from "@/contexts/auth-context";
-import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { NotificationBell } from "./notification-bell";
 
 const NAV_ITEMS = [
     { label: "WATCHLISTS", icon: LayoutDashboard, href: "/watchlists" },
@@ -60,6 +60,8 @@ export function Sidebar() {
             </div>
 
             <nav className="flex-1 py-6 px-3 space-y-2">
+                <NotificationBell isCollapsed={isCollapsed} />
+
                 {NAV_ITEMS.map((item) => {
                     const isActive = pathname === item.href;
                     const Icon = item.icon;

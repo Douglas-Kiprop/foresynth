@@ -1,7 +1,7 @@
 import asyncio
 import secrets
 from fastapi import APIRouter, Depends, HTTPException, Header, Request
-from src.core import get_db, get_cache
+from src.core import get_db, get_async_cache
 from src.core.security import get_current_user
 from src.services.telegram import get_telegram_service
 from src.core.config import get_settings
@@ -11,16 +11,24 @@ telegram_service = get_telegram_service()
 
 @router.post("/connect")
 async def generate_connect_token(
+    request: Request,
     user_id: str = Depends(get_current_user),
-    cache = Depends(get_cache)
+    cache = Depends(get_async_cache)
 ):
     """
     Generates a one-time token to link a Telegram account.
     Stores the token in Redis for 10 minutes.
     """
+    # Debug: Print JWT for manual curl command
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        print(f"\n--- [DEBUG: SUPABASE JWT TOKEN] ---")
+        print(auth_header.split(" ")[1])
+        print("----------------------------------\n")
+    
     token = secrets.token_urlsafe(32)
     # Store token -> user_id mapping in Redis for 600 seconds
-    await asyncio.to_thread(cache.setex, f"tg_connect:{token}", 600, user_id)
+    await cache.setex(f"tg_connect:{token}", 600, user_id)
     
     bot_info = await telegram_service.get_bot_info()
     bot_username = bot_info.get("username", "ForesynthBot") if bot_info else "ForesynthBot"
@@ -35,7 +43,7 @@ async def telegram_webhook(
     request: Request,
     x_telegram_bot_api_secret_token: str = Header(None),
     db = Depends(get_db),
-    cache = Depends(get_cache)
+    cache = Depends(get_async_cache)
 ):
     """
     Endpoint for Telegram Bot webhooks.
@@ -56,7 +64,7 @@ async def telegram_webhook(
     
     if text.startswith("/start "):
         token = text.split(" ")[1]
-        user_id = await asyncio.to_thread(cache.get, f"tg_connect:{token}")
+        user_id = await cache.get(f"tg_connect:{token}")
         
         if user_id:
             # Token found! Link the account.
@@ -75,7 +83,7 @@ async def telegram_webhook(
                 )
                 
                 # Clean up token
-                await asyncio.to_thread(cache.delete, f"tg_connect:{token}")
+                await cache.delete(f"tg_connect:{token}")
                 
             except Exception as e:
                 await telegram_service.send_message(chat_id, "❌ Error linking account. Please try again later.")

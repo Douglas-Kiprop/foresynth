@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.core.config import get_settings
 from src.routers import markets, watchlists, squads, signals, intel, notifications, telegram
+from src.services.tracker import get_tracker
 
 
 @asynccontextmanager
@@ -17,9 +18,16 @@ async def lifespan(app: FastAPI):
     # Startup
     settings = get_settings()
     print(f"🚀 Foresynth API starting in {'DEBUG' if settings.debug else 'PROD'} mode")
+    
+    # Start Tactical Tracker Engine
+    tracker = get_tracker()
+    await tracker.start()
+    
     yield
+    
     # Shutdown
     print("👋 Foresynth API shutting down")
+    await tracker.stop()
 
 
 def create_app() -> FastAPI:
@@ -67,4 +75,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-
