@@ -9,12 +9,13 @@ uvicorn = {extras = ["standard"], version = "*"}
 supabase = "*"
 upstash-redis = "*"
 python-dotenv = "*"
-httpx = "*"
 pydantic = "*"
 pydantic-settings = "*"
 feedparser = "*"
 redis = "*"
 hiredis = "*"
+pyjwt = "*"
+httpx = "*"
 
 [dev-packages]
 

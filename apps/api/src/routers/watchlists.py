@@ -9,6 +9,7 @@ from typing import Optional
 from uuid import UUID
 
 from src.core import get_db
+from src.core.security import get_current_user
 
 router = APIRouter()
 
@@ -36,7 +37,7 @@ class Watchlist(BaseModel):
 
 @router.get("/")
 async def list_watchlists(
-    user_id: str,  # TODO: Replace with auth dependency
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """List all watchlists for a user."""
@@ -47,7 +48,7 @@ async def list_watchlists(
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_watchlist(
     watchlist: WatchlistCreate,
-    user_id: str,  # TODO: Replace with auth dependency
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """Create a new watchlist."""
@@ -67,6 +68,7 @@ async def create_watchlist(
 @router.get("/{watchlist_id}")
 async def get_watchlist(
     watchlist_id: str,
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """Get a specific watchlist by ID."""
@@ -82,6 +84,7 @@ async def get_watchlist(
 async def update_watchlist(
     watchlist_id: str,
     update: WatchlistUpdate,
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """Update a watchlist."""
@@ -101,6 +104,7 @@ async def update_watchlist(
 @router.delete("/{watchlist_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_watchlist(
     watchlist_id: str,
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """Delete a watchlist."""
@@ -116,6 +120,7 @@ async def delete_watchlist(
 async def add_market_to_watchlist(
     watchlist_id: str,
     market_id: str,
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """Add a market to a watchlist."""
@@ -141,6 +146,7 @@ async def add_market_to_watchlist(
 async def remove_market_from_watchlist(
     watchlist_id: str,
     market_id: str,
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """Remove a market from a watchlist."""

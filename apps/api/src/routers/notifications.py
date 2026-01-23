@@ -9,6 +9,7 @@ from typing import Optional, Literal
 from datetime import datetime
 
 from src.core import get_db
+from src.core.security import get_current_user
 
 router = APIRouter()
 
@@ -35,9 +36,9 @@ class Notification(BaseModel):
 
 @router.get("/")
 async def list_notifications(
-    user_id: str,  # TODO: Replace with auth dependency
     unread_only: bool = False,
     limit: int = 50,
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """Get all notifications for a user."""
@@ -55,7 +56,7 @@ async def list_notifications(
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_notification(
     notification: NotificationCreate,
-    user_id: str,  # TODO: Replace with auth dependency
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """Create a new notification."""
@@ -78,6 +79,7 @@ async def create_notification(
 @router.patch("/{notification_id}/read")
 async def mark_as_read(
     notification_id: str,
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """Mark a notification as read."""
@@ -91,7 +93,7 @@ async def mark_as_read(
 
 @router.post("/read-all")
 async def mark_all_as_read(
-    user_id: str,  # TODO: Replace with auth dependency
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """Mark all notifications as read for a user."""
@@ -103,6 +105,7 @@ async def mark_all_as_read(
 @router.delete("/{notification_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_notification(
     notification_id: str,
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """Delete a notification."""
@@ -116,7 +119,7 @@ async def delete_notification(
 
 @router.get("/unread-count")
 async def get_unread_count(
-    user_id: str,  # TODO: Replace with auth dependency
+    user_id: str = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """Get count of unread notifications."""

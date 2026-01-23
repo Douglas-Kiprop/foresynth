@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.core.config import get_settings
-from src.routers import markets, watchlists, squads, signals, intel, notifications
+from src.routers import markets, watchlists, squads, signals, intel, notifications, telegram
 
 
 @asynccontextmanager
@@ -56,6 +56,7 @@ def create_app() -> FastAPI:
     app.include_router(signals.router, prefix=f"{prefix}/signals", tags=["Signals"])
     app.include_router(intel.router, prefix=f"{prefix}/intel", tags=["Intel"])
     app.include_router(notifications.router, prefix=f"{prefix}/notifications", tags=["Notifications"])
+    app.include_router(telegram.router, prefix=f"{prefix}/telegram", tags=["Telegram"])
     
     # Health check
     @app.get("/health")

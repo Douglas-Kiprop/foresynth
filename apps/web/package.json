@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@faker-js/faker": "^10.2.0",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.91.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.26.2",

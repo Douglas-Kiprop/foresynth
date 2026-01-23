@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     polymarket_api_key: str = ""
     polymarket_api_secret: str = ""
     cryptopanic_api_key: str = ""
+    telegram_bot_token: str = ""
+    telegram_webhook_secret: str = ""
     
     # Server
     debug: bool = True

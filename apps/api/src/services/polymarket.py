@@ -247,6 +247,46 @@ class PolymarketService:
             print(f"PolymarketService: Leaderboard fetch error: {e}")
             return []
 
+    async def get_closed_positions(
+        self, 
+        wallet_address: str, 
+        limit: int = 100
+    ) -> list[dict]:
+        """Fetch closed positions for a wallet to calculate win rate."""
+        cache_key = f"pm_closed_pos:{wallet_address}:{limit}"
+        
+        if self.cache:
+            try:
+                cached = await asyncio.to_thread(self.cache.get, cache_key)
+                if cached:
+                    return json.loads(cached)
+            except Exception as e:
+                print(f"PolymarketService: Cache read error: {e}")
+
+        url = "https://data-api.polymarket.com/v1/closed-positions"
+        params = {
+            "user": wallet_address,
+            "limit": limit,
+            "sortBy": "timestamp",
+            "sortDirection": "DESC"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, params=params, timeout=10.0)
+                response.raise_for_status()
+                data = response.json()
+                
+                # Cache for 10 minutes (completed trades don't change, but new ones happen)
+                if self.cache and data:
+                    await asyncio.to_thread(self.cache.setex, cache_key, 600, json.dumps(data))
+                
+                return data
+        except Exception as e:
+            print(f"PolymarketService: Closed positions fetch error for {wallet_address}: {e}")
+            return []
+
+
 
 # Singleton
 _polymarket_service: PolymarketService | None = None

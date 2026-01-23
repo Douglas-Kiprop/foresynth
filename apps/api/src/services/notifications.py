@@ -1,14 +1,12 @@
-"""
-Foresynth API - Notification Service
-
-Unified notification delivery across channels: In-App, Telegram, Discord.
-"""
 from typing import Literal
 from pydantic import BaseModel
 import httpx
+import logging
 
 from src.core import get_supabase
+from src.services.telegram import get_telegram_service
 
+logger = logging.getLogger(__name__)
 
 class NotificationPayload(BaseModel):
     """Notification payload for all channels."""
@@ -32,6 +30,7 @@ class NotificationService:
     
     def __init__(self):
         self.db = get_supabase()
+        self.telegram = get_telegram_service()
     
     async def send(self, payload: NotificationPayload) -> dict:
         """Send notification to all specified channels."""
@@ -61,53 +60,45 @@ class NotificationService:
             response = self.db.table("notifications").insert(data).execute()
             return bool(response.data)
         except Exception as e:
-            print(f"In-app notification failed: {e}")
+            logger.error(f"In-app notification failed: {e}")
             return False
     
     async def _send_telegram(self, payload: NotificationPayload) -> bool:
         """Send notification via Telegram Bot API."""
-        # Get user's telegram chat ID
-        user_response = self.db.table("users").select("telegram_chat_id").eq("id", payload.user_id).execute()
-        
-        if not user_response.data or not user_response.data[0].get("telegram_chat_id"):
-            return False
-        
-        chat_id = user_response.data[0]["telegram_chat_id"]
-        
-        # TODO: Add actual Telegram bot token
-        bot_token = ""  # Get from settings
-        
-        if not bot_token:
-            print("Telegram bot token not configured")
-            return False
-        
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"https://api.telegram.org/bot{bot_token}/sendMessage",
-                    json={
-                        "chat_id": chat_id,
-                        "text": f"🔔 *{payload.title}*\n\n{payload.message}",
-                        "parse_mode": "Markdown"
-                    },
-                    timeout=10.0
-                )
-                return response.status_code == 200
+            # Get user's telegram chat ID
+            user_response = self.db.table("users").select("telegram_chat_id").eq("id", payload.user_id).execute()
+            
+            if not user_response.data or not user_response.data[0].get("telegram_chat_id"):
+                return False
+            
+            chat_id = user_response.data[0]["telegram_chat_id"]
+            
+            # Format message
+            type_icon = "🔔"
+            if payload.type == "price_alert":
+                type_icon = "📈"
+            elif payload.type == "wallet_alert":
+                type_icon = "🐋"
+            
+            text = f"{type_icon} <b>{payload.title}</b>\n\n{payload.message}"
+            
+            return await self.telegram.send_message(chat_id, text)
         except Exception as e:
-            print(f"Telegram notification failed: {e}")
+            logger.error(f"Telegram notification dispatch failed: {e}")
             return False
     
     async def _send_discord(self, payload: NotificationPayload) -> bool:
         """Send notification via Discord Webhook."""
-        # Get user's discord webhook
-        user_response = self.db.table("users").select("discord_webhook_url").eq("id", payload.user_id).execute()
-        
-        if not user_response.data or not user_response.data[0].get("discord_webhook_url"):
-            return False
-        
-        webhook_url = user_response.data[0]["discord_webhook_url"]
-        
         try:
+            # Get user's discord webhook
+            user_response = self.db.table("users").select("discord_webhook_url").eq("id", payload.user_id).execute()
+            
+            if not user_response.data or not user_response.data[0].get("discord_webhook_url"):
+                return False
+            
+            webhook_url = user_response.data[0]["discord_webhook_url"]
+            
             # Discord embed format
             embed = {
                 "title": f"🔔 {payload.title}",
@@ -124,7 +115,7 @@ class NotificationService:
                 )
                 return response.status_code in [200, 204]
         except Exception as e:
-            print(f"Discord notification failed: {e}")
+            logger.error(f"Discord notification failed: {e}")
             return False
 
 

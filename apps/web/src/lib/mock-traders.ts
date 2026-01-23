@@ -2,6 +2,7 @@ export type TraderProfile = {
     id: string;
     address: string; // 0x...
     name?: string; // Optional ENS or pseudonym
+    profileImage?: string;
     rank: number;
     totalProfit: number;
     volume: number;
@@ -10,6 +11,8 @@ export type TraderProfile = {
     topCategory: string; // e.g. "Politics", "Crypto"
     lastActive: string; // ISO date
     history: { value: number; timestamp: number }[]; // Profit history
+    wins?: number;
+    losses?: number;
 };
 
 export const MOCK_TRADERS: TraderProfile[] = [

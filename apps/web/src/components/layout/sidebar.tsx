@@ -2,21 +2,32 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Zap, Newspaper, Bot, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Users, Zap, Newspaper, Bot, ChevronLeft, ChevronRight, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-context";
+import { useAuth } from "@/contexts/auth-context";
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 const NAV_ITEMS = [
     { label: "WATCHLISTS", icon: LayoutDashboard, href: "/watchlists" },
     { label: "INSIDERS", icon: Users, href: "/insiders" },
     { label: "SMART MONEY", icon: Zap, href: "/smart-money" },
     { label: "NEWS", icon: Newspaper, href: "/news" },
+    { label: "ACCOUNT", icon: Settings, href: "/account" },
     { label: "AI AGENT", icon: Bot, href: "/agent" },
 ];
 
 export function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
     const { isCollapsed, toggleSidebar } = useSidebar();
+    const { user, signOut } = useAuth();
+
+    const handleLogout = async () => {
+        await signOut();
+        router.refresh();
+    };
 
     return (
         <aside
@@ -84,7 +95,20 @@ export function Sidebar() {
                 })}
             </nav>
 
-            <div className="p-4 border-t border-sidebar-border">
+            <div className="p-4 border-t border-sidebar-border space-y-4">
+                {!isCollapsed && (
+                    <div className="flex items-center gap-3 px-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-500 border border-white/10" />
+                        <div className="flex-1 overflow-hidden">
+                            <div className="font-bold text-sm truncate">{user?.email?.split('@')[0] || "Operator"}</div>
+                            <div className="text-xs text-foreground/40 font-mono truncate">Online</div>
+                        </div>
+                        <button onClick={handleLogout} className="text-foreground/40 hover:text-red-500 transition-colors">
+                            <LogOut size={16} />
+                        </button>
+                    </div>
+                )}
+
                 <div
                     className={cn(
                         "p-4 rounded-sm bg-black/40 border border-sidebar-border overflow-hidden transition-all duration-300",
@@ -97,11 +121,11 @@ export function Sidebar() {
                             isCollapsed && "hidden"
                         )}
                     >
-                        BUILDER STATUS
+                        SYSTEM STATUS
                     </p>
                     <div className="flex items-center gap-2 text-primary text-sm font-bold justify-center">
                         <div className="h-2 w-2 rounded-full bg-primary shadow-neon animate-pulse shrink-0" />
-                        <span className={cn(isCollapsed && "hidden")}>ONLINE</span>
+                        <span className={cn(isCollapsed && "hidden")}>OPERATIONAL</span>
                     </div>
                 </div>
             </div>

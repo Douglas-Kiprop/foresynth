@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Orbitron, Rajdhani } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/contexts/auth-context";
 
 const orbitron = Orbitron({
   variable: "--font-orbitron",
@@ -30,7 +31,7 @@ export default function RootLayout({
       <body
         className={`${orbitron.variable} ${rajdhani.variable} antialiased bg-background text-foreground`}
       >
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
