@@ -67,11 +67,6 @@ const ElasticHueSlider: React.FC<ElasticHueSliderProps> = ({
     );
 };
 
-interface FeatureItemProps {
-    name: string;
-    value: string;
-    position: string;
-}
 
 interface LightningProps {
     hue?: number;
@@ -243,23 +238,6 @@ const Lightning: React.FC<LightningProps> = ({
     return <canvas ref={canvasRef} className="w-full h-full relative opacity-80 mix-blend-screen" />;
 };
 
-const FeatureItem: React.FC<FeatureItemProps> = ({ name, value, position }) => {
-    return (
-        <div className={`absolute ${position} z-10 group transition-all duration-300 hover:scale-110 cursor-default`}>
-            <div className="flex items-center gap-2 relative">
-                <div className="relative">
-                    <div className="w-2 h-2 bg-primary rounded-full group-hover:animate-pulse"></div>
-                    <div className="absolute -inset-1 bg-primary/20 rounded-full blur-sm opacity-70 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-                <div className="relative">
-                    <div className="font-orbitron font-medium text-foreground group-hover:text-primary transition-colors duration-300">{name}</div>
-                    <div className="text-foreground/50 text-xs group-hover:text-foreground/80 transition-colors duration-300">{value}</div>
-                    <div className="absolute -inset-2 bg-primary/5 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 export const HeroSection: React.FC = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -312,12 +290,6 @@ export const HeroSection: React.FC = () => {
                     </div>
                 </motion.div>
 
-                {/* Feature Nodes */}
-                <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full absolute inset-0 z-10 pointer-events-none">
-                    <motion.div variants={itemVariants}><FeatureItem name="Polymarket" value="Data Source" position="left-[10%] sm:left-[15%] top-[25%]" /></motion.div>
-                    <motion.div variants={itemVariants}><FeatureItem name="AI Agents" value="Analysis" position="left-[5%] sm:left-[20%] top-[60%]" /></motion.div>
-                    <motion.div variants={itemVariants}><FeatureItem name="Insights" value="Predictive" position="right-[5%] sm:right-[20%] top-[65%]" /></motion.div>
-                </motion.div>
 
                 {/* Hero Content Center */}
                 <motion.div variants={containerVariants} initial="hidden" animate="visible" className="relative z-30 flex flex-col items-center text-center justify-center flex-grow -mt-20">

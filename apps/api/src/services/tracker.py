@@ -98,34 +98,45 @@ class TacticalTracker:
                 print(f"📡 TACTICAL ENGINE: Scanning {len(wallet_map)} targets for trade activity...")
             
             for wallet, observers in wallet_map.items():
-                trades = await self.polymarket.get_trades(wallet, limit=5)
+                trades = await self.polymarket.get_trades(wallet, limit=10) # Increased limit to process multiple new trades
                 if not trades:
                     continue
                 
-                # Check most recent trade
-                latest_trade = trades[0]
-                trade_id = latest_trade.get("transactionHash") or latest_trade.get("id")
-                if not trade_id:
-                    continue
-                
-                # 3. Check if we've seen this trade before
+                # Get last seen trade ID
                 cache_key = f"tracker:last_trade:{wallet}"
                 last_seen_id = await self.cache.get(cache_key)
                 
-                if last_seen_id == trade_id:
-                    continue 
+                # Identify new trades
+                new_trades = []
+                for trade in trades:
+                    trade_id = trade.get("transactionHash") or trade.get("id")
+                    if not trade_id:
+                        continue
+                    if trade_id == last_seen_id:
+                        break # Found the last seen trade, stop
+                    new_trades.append(trade)
                 
-                # 4. New trade detected! Seed cache for next time
-                await self.cache.set(cache_key, trade_id)
+                # If no new trades, continue
+                if not new_trades:
+                    if last_seen_id is None:
+                        # First run for this wallet: Seed cache with the most recent trade and skip processing
+                        latest_trade_id = trades[0].get("transactionHash") or trades[0].get("id")
+                        if latest_trade_id:
+                            await self.cache.set(cache_key, latest_trade_id)
+                            print(f"📝 TACTICAL ENGINE: Seeded initial state for wallet {wallet[:8]} (ID: {latest_trade_id[:8]})")
+                    continue
+                    
+                # Update cache with the NEWEST trade ID (from the latest fetched trade)
+                newest_trade_id = trades[0].get("transactionHash") or trades[0].get("id")
+                if newest_trade_id:
+                    await self.cache.set(cache_key, newest_trade_id)
                 
-                if last_seen_id is None:
-                    print(f"📝 TACTICAL ENGINE: Seeded initial state for wallet {wallet[:8]}")
-                    continue # First run
+                print(f"🎯 TACTICAL ENGINE: {len(new_trades)} NEW TRADES from {wallet[:8]}")
                 
-                # 5. Process observers and filters
-                print(f"🎯 TACTICAL ENGINE: NEW TRADE DETECTED from {wallet[:8]}")
-                for obs in observers:
-                    await self._process_wallet_trade(wallet, latest_trade, obs)
+                # Process new trades (oldest to newest for chronological alerts)
+                for trade in reversed(new_trades): 
+                    for obs in observers:
+                        await self._process_wallet_trade(wallet, trade, obs)
                 
         except Exception as e:
             print(f"❌ TACTICAL ENGINE: Wallet monitor failed: {e}")
@@ -134,27 +145,31 @@ class TacticalTracker:
         """Apply filters and notify a specific user about a trade."""
         try:
             config = observer["config"] or {}
-            min_size = config.get("min_trade_size", 0)
-            only_buy = config.get("only_buy_orders", False)
             
             # Trade details
-            size = float(trade.get("size", 0))
+            shares = float(trade.get("size", 0))
+            price = float(trade.get("price", 0))
+            usd_size = shares * price
+            
             side = trade.get("side", "").upper() # BUY, SELL
             
             # Apply Filters
-            if size < min_size:
+            min_size = config.get("min_trade_size", 0)
+            if usd_size < min_size:
                 return
             
+            only_buy = config.get("only_buy_orders", False)
             if only_buy and "BUY" not in side and "YES" not in side:
                 return
             
-            print(f"✨ TACTICAL ENGINE: Signal matches filters! Size: ${size:,.2f} | Side: {side}")
+            print(f"✨ TACTICAL ENGINE: Signal matches filters! Size: ${usd_size:,.2f} | Side: {side}")
             
+            # Prepare notification
             # Prepare notification
             asset = trade.get("market", "Unknown Market")
             message = (
                 f"👤 <b>Target</b>: <code>{wallet[:6]}...{wallet[-4:]}</code>\n"
-                f"🎯 <b>Action</b>: {side} ${size:,.2f}\n"
+                f"🎯 <b>Action</b>: {side} ${usd_size:,.2f} ({shares:,.0f} shares @ {price:.2f})\n"
                 f"📊 <b>Market</b>: {asset}\n"
                 f"📂 <b>Squad</b>: {observer['squad_name']}"
             )
