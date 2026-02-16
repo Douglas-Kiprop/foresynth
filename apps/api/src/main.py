@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.core.config import get_settings
-from src.routers import markets, watchlists, squads, signals, intel, notifications, telegram
+from src.routers import markets, watchlists, squads, signals, intel, notifications, telegram, agent
 from src.services.tracker import get_tracker
 
 
@@ -65,6 +65,7 @@ def create_app() -> FastAPI:
     app.include_router(intel.router, prefix=f"{prefix}/intel", tags=["Intel"])
     app.include_router(notifications.router, prefix=f"{prefix}/notifications", tags=["Notifications"])
     app.include_router(telegram.router, prefix=f"{prefix}/telegram", tags=["Telegram"])
+    app.include_router(agent.router, prefix=f"{prefix}/agent", tags=["Agent"])
     
     # Health check
     @app.get("/health")

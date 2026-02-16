@@ -307,3 +307,51 @@ export const notificationsApi = {
         return fetchApi(`/notifications/${notificationId}`, { method: "DELETE" });
     },
 };
+
+// ============================================================================
+// AGENT API
+// ============================================================================
+
+export interface AgentConfig {
+    user_id: string;
+    risk_profile: "conservative" | "moderate" | "degen";
+    focus_sectors: string[];
+    sources: string[];
+    alert_frequency: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface AgentDecision {
+    id: string;
+    market_question: string;
+    market_slug?: string;
+    signal: "BUY_YES" | "BUY_NO" | "HOLD" | "SKIP";
+    confidence: number;
+    reasoning: string;
+    key_factors: string[];
+    risk_level: "low" | "medium" | "high";
+    created_at: string;
+}
+
+export const agentApi = {
+    getConfig: async (userId: string): Promise<AgentConfig> => {
+        return fetchApi(`/agent/config/${userId}`);
+    },
+
+    updateConfig: async (userId: string, config: Partial<AgentConfig>): Promise<AgentConfig> => {
+        return fetchApi(`/agent/config/${userId}`, {
+            method: "PUT",
+            body: JSON.stringify(config),
+        });
+    },
+
+    getDecisions: async (userId: string, limit = 20): Promise<AgentDecision[]> => {
+        return fetchApi(`/agent/decisions/${userId}?limit=${limit}`);
+    },
+
+    triggerAnalysis: async (userId: string): Promise<any> => {
+        return fetchApi(`/agent/analyze/${userId}`, { method: "POST" });
+    },
+};

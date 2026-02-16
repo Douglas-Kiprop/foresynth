@@ -73,7 +73,7 @@ class TacticalTracker:
                 .execute()
                 
             if not response.data:
-                print("ℹ️ TACTICAL ENGINE: No active wallets found in tracked_targets.")
+                # print("ℹ️ TACTICAL ENGINE: No active wallets found in tracked_targets.") # Reduce spam
                 return
             
             # Map wallet -> list of alert configurations
@@ -106,27 +106,34 @@ class TacticalTracker:
                 cache_key = f"tracker:last_trade:{wallet}"
                 last_seen_id = await self.cache.get(cache_key)
                 
+                # Handling First Run (Seeding)
+                if last_seen_id is None:
+                    # Seed cache with the most recent trade and skip processing
+                    latest_trade_id = trades[0].get("transactionHash") or trades[0].get("id")
+                    if latest_trade_id:
+                        await self.cache.set(cache_key, latest_trade_id)
+                        print(f"📝 TACTICAL ENGINE: Seeded initial state for wallet {wallet[:8]}. Latest ID: {latest_trade_id[:8]}")
+                    continue
+
                 # Identify new trades
                 new_trades = []
                 for trade in trades:
                     trade_id = trade.get("transactionHash") or trade.get("id")
                     if not trade_id:
                         continue
+                        
+                    # Stop if we hit the last seen trade
                     if trade_id == last_seen_id:
-                        break # Found the last seen trade, stop
+                        break 
+                        
                     new_trades.append(trade)
                 
                 # If no new trades, continue
                 if not new_trades:
-                    if last_seen_id is None:
-                        # First run for this wallet: Seed cache with the most recent trade and skip processing
-                        latest_trade_id = trades[0].get("transactionHash") or trades[0].get("id")
-                        if latest_trade_id:
-                            await self.cache.set(cache_key, latest_trade_id)
-                            print(f"📝 TACTICAL ENGINE: Seeded initial state for wallet {wallet[:8]} (ID: {latest_trade_id[:8]})")
                     continue
                     
                 # Update cache with the NEWEST trade ID (from the latest fetched trade)
+                # IMPORTANT: We use trades[0] because new_trades[0] is the same trade
                 newest_trade_id = trades[0].get("transactionHash") or trades[0].get("id")
                 if newest_trade_id:
                     await self.cache.set(cache_key, newest_trade_id)

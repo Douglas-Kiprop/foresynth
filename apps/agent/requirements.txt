@@ -1,0 +1,26 @@
+# Foresynth Agent - Dependencies
+# Core
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic-settings==2.7.1
+
+# LangGraph / LangChain
+langgraph==0.2.65
+langchain==0.3.14
+langchain-openai==0.3.1
+langchain-community==0.3.14
+
+# Polymarket Data (we adapt the SDK utilities directly)
+httpx==0.28.1
+
+# Database
+supabase==2.11.0
+
+# Redis (Upstash)
+upstash-redis==1.1.0
+
+# Search / RAG
+tavily-python==0.5.0
+
+# Utilities
+python-dotenv==1.0.1
