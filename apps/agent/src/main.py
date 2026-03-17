@@ -32,6 +32,17 @@ logger = logging.getLogger("foresynth.agent")
 
 
 # ── Background Decision Feed Loop ─────────────────────────────
+def _sync_get_active_configs():
+    """Run synchronous Supabase query in a thread to avoid blocking the event loop."""
+    db = get_supabase()
+    return (
+        db.table("agent_configs")
+        .select("user_id, risk_profile, focus_sectors, sources")
+        .eq("is_active", True)
+        .execute()
+    )
+
+
 async def decision_feed_loop():
     """
     Proactive scan loop — runs on a timer, analyzes each user's
@@ -42,18 +53,15 @@ async def decision_feed_loop():
 
     logger.info(f"🤖 Decision Feed Loop started (interval: {interval}s)")
 
+    # Wait a few seconds so the HTTP server is fully ready before the first scan
+    await asyncio.sleep(5)
+
     while True:
         try:
-            db = get_supabase()
             graph = get_graph()
 
-            # Get all users with active agent configs
-            configs_resp = (
-                db.table("agent_configs")
-                .select("user_id, risk_profile, focus_sectors, sources")
-                .eq("is_active", True)
-                .execute()
-            )
+            # Run the synchronous Supabase call in a thread so we don't block uvicorn
+            configs_resp = await asyncio.to_thread(_sync_get_active_configs)
 
             users = configs_resp.data or []
             if not users:
@@ -66,6 +74,9 @@ async def decision_feed_loop():
             for user_config in users:
                 user_id = user_config["user_id"]
                 try:
+                    # Yield control briefly so HTTP requests can be served
+                    await asyncio.sleep(0)
+
                     # Run the full graph for this user
                     result = await graph.ainvoke(
                         {
@@ -137,6 +148,12 @@ class AnalyzeRequest(BaseModel):
     task: str = "proactive_scan"  # or "analyze_market:<slug>"
 
 
+class ChatRequest(BaseModel):
+    user_id: str
+    chat_id: str          # Telegram chat ID
+    message: str           # The user's text message
+
+
 class DecisionResponse(BaseModel):
     market_question: str = ""
     market_slug: str = ""
@@ -180,6 +197,32 @@ async def analyze(request: AnalyzeRequest):
         )
     except Exception as e:
         logger.error(f"Analyze endpoint error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/chat")
+async def chat(request: ChatRequest):
+    """
+    Handle a chat message from Telegram.
+    Invokes the agent graph in 'chat' mode and sends the reply to Telegram.
+    """
+    try:
+        graph = get_graph()
+        result = await graph.ainvoke(
+            {
+                "user_id": request.user_id,
+                "task": "chat",
+                "current_message": request.message,
+                "telegram_chat_id": request.chat_id,
+                "messages": [],
+            }
+        )
+        return {
+            "status": "ok",
+            "messages": result.get("messages", []),
+        }
+    except Exception as e:
+        logger.error(f"Chat endpoint error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

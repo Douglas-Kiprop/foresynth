@@ -66,7 +66,12 @@ class AgentState(TypedDict, total=False):
 
     # ── Inputs ──────────────────────────────────────────────────
     user_id: str
-    task: str  # e.g. "proactive_scan" or "analyze_market:<slug>"
+    task: str  # e.g. "proactive_scan", "analyze_market:<slug>", or "chat"
+
+    # ── Chat ────────────────────────────────────────────────────
+    current_message: str          # The user's incoming chat message
+    telegram_chat_id: str         # Telegram chat ID for sending the reply
+    chat_replied: bool            # Set to True after the chat node has replied
 
     # ── User Config ─────────────────────────────────────────────
     user_config: dict  # From agent_configs table

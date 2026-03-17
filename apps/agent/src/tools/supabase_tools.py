@@ -4,6 +4,7 @@ Foresynth Agent - Supabase Tools
 Functions to retrieve user-specific context from the shared Supabase database.
 These are the agent's link to the user's watchlists, squads, and configurations.
 """
+import asyncio
 import logging
 from src.core.database import get_supabase
 
@@ -19,11 +20,11 @@ async def get_user_watchlist_ids(user_id: str) -> list[str]:
         db = get_supabase()
 
         # Get user's watchlists with market_ids array
-        wl_resp = (
+        wl_resp = await asyncio.to_thread(
             db.table("watchlists")
             .select("market_ids")
             .eq("user_id", user_id)
-            .execute()
+            .execute
         )
         if not wl_resp.data:
             return []
@@ -50,12 +51,12 @@ async def get_user_tracked_wallets(user_id: str) -> list[str]:
         db = get_supabase()
 
         # Get user's active squads
-        squads_resp = (
+        squads_resp = await asyncio.to_thread(
             db.table("squads")
             .select("id")
             .eq("user_id", user_id)
             .eq("is_active", True)
-            .execute()
+            .execute
         )
         if not squads_resp.data:
             return []
@@ -63,11 +64,11 @@ async def get_user_tracked_wallets(user_id: str) -> list[str]:
         squad_ids = [s["id"] for s in squads_resp.data]
 
         # Get tracked targets from those squads
-        targets_resp = (
+        targets_resp = await asyncio.to_thread(
             db.table("tracked_targets")
             .select("wallet_address")
             .in_("squad_id", squad_ids)
-            .execute()
+            .execute
         )
 
         wallets = list({t["wallet_address"] for t in (targets_resp.data or [])})
@@ -90,12 +91,12 @@ async def get_agent_config(user_id: str) -> dict:
     }
     try:
         db = get_supabase()
-        resp = (
+        resp = await asyncio.to_thread(
             db.table("agent_configs")
             .select("*")
             .eq("user_id", user_id)
             .limit(1)
-            .execute()
+            .execute
         )
         if resp.data:
             return {**defaults, **resp.data[0]}
@@ -119,7 +120,7 @@ async def save_agent_decision(user_id: str, decision: dict) -> bool:
             "key_factors": decision.get("key_factors", []),
             "risk_level": decision.get("risk_level", "medium"),
         }
-        resp = db.table("agent_decisions").insert(data).execute()
+        resp = await asyncio.to_thread(db.table("agent_decisions").insert(data).execute)
         return bool(resp.data)
     except Exception as e:
         logger.error(f"save_agent_decision error: {e}")

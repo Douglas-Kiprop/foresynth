@@ -15,7 +15,8 @@ def get_redis() -> redis.Redis:
         _redis_client = redis.from_url(
             settings.upstash_redis_url,
             decode_responses=True,
-            socket_timeout=5.0
+            socket_timeout=5.0,
+            ssl_cert_reqs="none" if "rediss://" in settings.upstash_redis_url else None
         )
     
     return _redis_client
@@ -30,7 +31,8 @@ def get_async_redis() -> async_redis.Redis:
         _async_redis_client = async_redis.from_url(
             settings.upstash_redis_url,
             decode_responses=True,
-            socket_timeout=5.0
+            socket_timeout=5.0,
+            ssl_cert_reqs="none" if "rediss://" in settings.upstash_redis_url else None
         )
     
     return _async_redis_client

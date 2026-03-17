@@ -47,15 +47,16 @@ async def send_decision_to_telegram(user_id: str, decision: dict) -> bool:
     • Factor 2
     """
     try:
+        import asyncio
         db = get_supabase()
         settings = get_settings()
 
         # Get user's telegram chat ID
-        user_resp = (
+        user_resp = await asyncio.to_thread(
             db.table("users")
             .select("telegram_chat_id")
             .eq("id", user_id)
-            .execute()
+            .execute
         )
 
         if not user_resp.data or not user_resp.data[0].get("telegram_chat_id"):

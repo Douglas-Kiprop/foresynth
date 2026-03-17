@@ -17,7 +17,8 @@ async def supervisor_node(state: AgentState) -> dict:
     Route the graph to the next node based on the current state.
 
     Execution order:
-      1. context → 2. market_analyst → 3. researcher → 4. advisor → END
+      - proactive_scan: context → market_analyst → researcher → advisor → END
+      - chat:           context → chat → END
 
     Reads: next_node (or determines from current state)
     Writes: next_node, messages
@@ -25,22 +26,31 @@ async def supervisor_node(state: AgentState) -> dict:
     task = state.get("task", "proactive_scan")
 
     # Determine next step based on what's been populated
-    # We check if the key exists (is not None) to handle empty results (e.g. empty watchlist)
     has_context = state.get("watchlist_markets") is not None
     has_market_data = state.get("market_snapshots") is not None
     has_research = state.get("news_items") is not None
     has_decisions = state.get("decisions") is not None
 
-    if not has_context:
-        next_node = "context"
-    elif not has_market_data:
-        next_node = "market_analyst"
-    elif not has_research:
-        next_node = "researcher"
-    elif not has_decisions:
-        next_node = "advisor"
+    if task == "chat":
+        # Chat flow: context → chat → END
+        if not has_context:
+            next_node = "context"
+        elif not state.get("chat_replied"):
+            next_node = "chat"
+        else:
+            next_node = "END"
     else:
-        next_node = "END"
+        # Default proactive scan / analysis flow
+        if not has_context:
+            next_node = "context"
+        elif not has_market_data:
+            next_node = "market_analyst"
+        elif not has_research:
+            next_node = "researcher"
+        elif not has_decisions:
+            next_node = "advisor"
+        else:
+            next_node = "END"
 
     logger.info(f"🎯 Supervisor: task={task} → routing to {next_node}")
 

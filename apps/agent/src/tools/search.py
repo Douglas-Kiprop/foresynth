@@ -67,7 +67,12 @@ async def get_crypto_news(limit: int = 10) -> list[dict]:
             data = resp.json()
 
             results = []
-            for item in data.get("Data", [])[:limit]:
+            news_data = data.get("Data", [])
+            if not isinstance(news_data, list):
+                logger.error(f"Crypto news error: 'Data' is not a list, got {type(news_data)}")
+                return []
+
+            for item in news_data[:limit]:
                 results.append(
                     {
                         "title": item.get("title", ""),

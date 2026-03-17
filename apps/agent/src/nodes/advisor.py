@@ -111,6 +111,10 @@ async def advisor_node(state: AgentState) -> dict:
         temperature=0.3,
         api_key=settings.openai_api_key,
         base_url=settings.openai_api_base,
+        default_headers={
+            "HTTP-Referer": "https://foresynth.com",
+            "X-Title": "Foresynth Agent",
+        }
     )
 
     system_msg = SystemMessage(content=SYSTEM_PROMPT.format(risk_profile=risk_profile))
