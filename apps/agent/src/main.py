@@ -94,16 +94,23 @@ async def decision_feed_loop():
                     risk = user_config.get("risk_profile", "moderate")
                     threshold = {"conservative": 0.8, "moderate": 0.65, "degen": 0.5}.get(risk, 0.65)
 
-                    actionable = [d for d in decisions if d.get("confidence", 0) >= threshold and d.get("signal") != "SKIP"]
+                    actionable_count = 0
+                    for decision in decisions:
+                        # Determine if actionable
+                        is_actionable = decision.get("confidence", 0) >= threshold and decision.get("signal") != "SKIP"
+                        decision["is_actionable"] = is_actionable
 
-                    for decision in actionable:
-                        # Persist to feed
+                        # Persist ALL decisions to feed for debugging
                         await save_agent_decision(user_id, decision)
-                        # Push to Telegram
-                        await send_decision_to_telegram(user_id, decision)
+                        
+                        # Only push highly actionable ones to Telegram
+                        if is_actionable:
+                            await send_decision_to_telegram(user_id, decision)
+                            actionable_count += 1
 
-                    if actionable:
-                        logger.info(f"🤖 {len(actionable)} insights pushed to user {user_id[:8]}")
+                    if actionable_count > 0:
+                        logger.info(f"🤖 {actionable_count} actionable insights pushed to user {user_id[:8]}")
+                    logger.info(f"🤖 {len(decisions)} total decisions saved for user {user_id[:8]}")
 
                 except Exception as e:
                     logger.error(f"🤖 Decision Feed error for user {user_id[:8]}: {e}")

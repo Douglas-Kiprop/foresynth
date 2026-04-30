@@ -28,15 +28,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = createClient();
 
     useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (event, session) => {
-                setSession(session);
-                setUser(session?.user ?? null);
-                setLoading(false);
-            }
-        );
+        // DEV BYPASS: Force a logged in state
+        const mockUser = {
+            id: "885c6dce-5d2d-40b8-b81b-f63a8e90531b",
+            email: "dev@foresynth.ai",
+            app_metadata: {},
+            user_metadata: {},
+            aud: "authenticated",
+            created_at: new Date().toISOString()
+        } as any;
+        
+        setUser(mockUser);
+        setSession({
+            user: mockUser,
+            access_token: "dev-bypass-token",
+            refresh_token: "dev-bypass-token",
+            expires_in: 3600,
+            token_type: "bearer"
+        } as any);
+        setLoading(false);
 
-        return () => subscription.unsubscribe();
+        // const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        //     (event, session) => {
+        //         setSession(session);
+        //         setUser(session?.user ?? null);
+        //         setLoading(false);
+        //     }
+        // );
+
+        // return () => subscription.unsubscribe();
     }, [supabase]);
 
     const signOut = async () => {

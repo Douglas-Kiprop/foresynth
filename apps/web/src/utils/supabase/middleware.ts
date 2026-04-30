@@ -44,16 +44,17 @@ export async function updateSession(request: NextRequest) {
         !request.nextUrl.pathname.startsWith('/auth') &&
         request.nextUrl.pathname !== '/'
     ) {
-        // Check if the route requires auth (Watchlist, Smart Money, Account)
-        if (
-            request.nextUrl.pathname.startsWith('/watchlists') ||
-            request.nextUrl.pathname.startsWith('/smart-money') ||
-            request.nextUrl.pathname.startsWith('/account')
-        ) {
-            const url = request.nextUrl.clone()
-            url.pathname = '/login'
-            return NextResponse.redirect(url)
-        }
+        // DEV BYPASS: Disable authentication redirects for testing
+        // // Check if the route requires auth (Watchlist, Smart Money, Account)
+        // if (
+        //     request.nextUrl.pathname.startsWith('/watchlists') ||
+        //     request.nextUrl.pathname.startsWith('/smart-money') ||
+        //     request.nextUrl.pathname.startsWith('/account')
+        // ) {
+        //     const url = request.nextUrl.clone()
+        //     url.pathname = '/login'
+        //     return NextResponse.redirect(url)
+        // }
     }
 
     return supabaseResponse

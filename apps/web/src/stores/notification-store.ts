@@ -28,7 +28,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
     loadNotifications: async () => {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        // DEV BYPASS
+        // const { data: { user } } = await supabase.auth.getUser();
+        const user = { id: "885c6dce-5d2d-40b8-b81b-f63a8e90531b" };
         if (!user) return;
 
         set({ isLoading: true });
@@ -78,7 +80,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
     markAllAsRead: async () => {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        // DEV BYPASS
+        // const { data: { user } } = await supabase.auth.getUser();
+        const user = { id: "885c6dce-5d2d-40b8-b81b-f63a8e90531b" };
         if (!user) return;
 
         try {

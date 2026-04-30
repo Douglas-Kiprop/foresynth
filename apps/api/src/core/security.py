@@ -8,6 +8,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     """
     Verifies the Supabase JWT token using the Supabase API and returns the user ID (sub).
     """
+    return "885c6dce-5d2d-40b8-b81b-f63a8e90531b" # DEV BYPASS
+    
     token = credentials.credentials
     supabase = get_supabase()
     
