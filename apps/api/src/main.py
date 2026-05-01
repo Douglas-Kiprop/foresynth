@@ -49,7 +49,7 @@ def create_app() -> FastAPI:
         allow_origins=[
             "http://localhost:3000",
             "http://localhost:3001",
-            "https://*.vercel.app",
+            "https://foresynthai.vercel.app",
         ],
         allow_credentials=True,
         allow_methods=["*"],
