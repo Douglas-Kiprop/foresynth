@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, Zap, Newspaper, Bot, ChevronLeft, ChevronRight, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,15 +39,19 @@ export function Sidebar() {
         >
             {/* Header with Logo and Toggle */}
             <div className={cn("p-6 border-b border-sidebar-border flex items-center justify-between", isCollapsed && "px-4 justify-center")}>
-                <Link href="/" className={cn("group flex items-center gap-2", isCollapsed && "hidden")}>
-                    <div className="h-8 w-8 bg-primary rounded-sm shadow-neon group-hover:scale-110 transition-transform duration-300 shrink-0" />
-                    <span className="text-2xl font-orbitron font-bold text-foreground tracking-widest group-hover:text-primary transition-all duration-300 whitespace-nowrap">
+                <Link href="/" className={cn("group flex items-center gap-3", isCollapsed && "hidden")}>
+                    <div className="relative h-7 w-7 shrink-0 group-hover:scale-110 transition-transform duration-300">
+                        <Image src="/foresynth-logo.png" alt="Foresynth Logo" fill className="object-contain invert opacity-90 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+                    </div>
+                    <span className="text-xl font-orbitron font-bold text-foreground tracking-widest group-hover:text-primary transition-all duration-300 whitespace-nowrap">
                         FORESYNTH
                     </span>
                 </Link>
 
                 {/* Logo Icon Only when collapsed */}
-                <div className={cn("h-8 w-8 bg-primary rounded-sm shadow-neon shrink-0 hidden", isCollapsed && "block")} />
+                <div className={cn("relative h-7 w-7 shrink-0 hidden drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]", isCollapsed && "block")}>
+                    <Image src="/foresynth-logo.png" alt="Foresynth Logo" fill className="object-contain invert opacity-90" />
+                </div>
 
                 <button
                     onClick={toggleSidebar}
