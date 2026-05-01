@@ -1,14 +1,16 @@
 
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useMemo } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
     user: User | null;
     session: Session | null;
     loading: boolean;
+    isAuthenticated: boolean;
     signOut: () => Promise<void>;
 }
 
@@ -16,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     session: null,
     loading: true,
+    isAuthenticated: false,
     signOut: async () => { },
 });
 
@@ -25,46 +28,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
-    const supabase = createClient();
+    const router = useRouter();
+    const supabase = useMemo(() => createClient(), []);
 
     useEffect(() => {
-        // DEV BYPASS: Force a logged in state
-        const mockUser = {
-            id: "885c6dce-5d2d-40b8-b81b-f63a8e90531b",
-            email: "dev@foresynth.ai",
-            app_metadata: {},
-            user_metadata: {},
-            aud: "authenticated",
-            created_at: new Date().toISOString()
-        } as any;
-        
-        setUser(mockUser);
-        setSession({
-            user: mockUser,
-            access_token: "dev-bypass-token",
-            refresh_token: "dev-bypass-token",
-            expires_in: 3600,
-            token_type: "bearer"
-        } as any);
-        setLoading(false);
+        // Fetch initial session on mount
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            setUser(session?.user ?? null);
+            setLoading(false);
+        });
 
-        // const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        //     (event, session) => {
-        //         setSession(session);
-        //         setUser(session?.user ?? null);
-        //         setLoading(false);
-        //     }
-        // );
+        // Listen for auth changes (login, logout, token refresh)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (event, session) => {
+                setSession(session);
+                setUser(session?.user ?? null);
+                setLoading(false);
 
-        // return () => subscription.unsubscribe();
-    }, [supabase]);
+                // Force refresh the page data when user signs in or out
+                if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+                    router.refresh();
+                }
+            }
+        );
+
+        return () => subscription.unsubscribe();
+    }, [supabase, router]);
 
     const signOut = async () => {
-        await supabase.auth.signOut();
+        try {
+            await supabase.auth.signOut();
+        } catch (error) {
+            console.error("Error signing out:", error);
+        } finally {
+            setUser(null);
+            setSession(null);
+            // Force clear any stuck tokens
+            if (typeof window !== 'undefined') {
+                localStorage.clear();
+            }
+            router.refresh();
+        }
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, signOut }}>
+        <AuthContext.Provider value={{ user, session, loading, isAuthenticated: !!user, signOut }}>
             {children}
         </AuthContext.Provider>
     );

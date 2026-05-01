@@ -84,9 +84,7 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
 
     createWatchlist: async (name, markets) => {
         const supabase = createClient();
-        // DEV BYPASS
-        // const { data: { user } } = await supabase.auth.getUser();
-        const user = { id: "885c6dce-5d2d-40b8-b81b-f63a8e90531b" };
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
         const marketIds = markets.map(m => m.id);
@@ -183,9 +181,7 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
 
     createPriceAlert: async (marketId, condition, threshold, channels) => {
         const supabase = createClient();
-        // DEV BYPASS
-        // const { data: { user } } = await supabase.auth.getUser();
-        const user = { id: "885c6dce-5d2d-40b8-b81b-f63a8e90531b" };
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
         try {

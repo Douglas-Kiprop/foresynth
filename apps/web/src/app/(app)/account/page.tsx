@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { createClient } from "@/utils/supabase/client";
 
 export default function AccountPage() {
-    const { user } = useAuth();
+    const { user, session } = useAuth();
     const [telegramStatus, setTelegramStatus] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isConnecting, setIsConnecting] = useState(false);
@@ -46,7 +46,7 @@ export default function AccountPage() {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/telegram/connect`, {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer dev-bypass-token`,
+                    "Authorization": `Bearer ${session?.access_token}`,
                     "Content-Type": "application/json"
                 }
             });

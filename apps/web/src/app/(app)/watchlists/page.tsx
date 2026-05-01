@@ -5,11 +5,23 @@ import { WatchlistCard, WatchlistCardSkeleton } from "@/components/watchlist/wat
 import { Plus, Search, LayoutGrid } from "lucide-react";
 import { useState, useEffect } from "react";
 import { SynthesizerModal } from "@/components/watchlist/synthesizer-modal";
+import { useAuth } from "@/contexts/auth-context";
+import { AuthGateModal } from "@/components/ui/auth-gate-modal";
 
 export default function WatchlistsPage() {
     const { watchlists, createWatchlist } = useWatchlistStore();
+    const { isAuthenticated } = useAuth();
     const [isSynthesizerOpen, setIsSynthesizerOpen] = useState(false);
+    const [showAuthGate, setShowAuthGate] = useState(false);
     const [isHydrated, setIsHydrated] = useState(false);
+
+    const handleCreateClick = () => {
+        if (isAuthenticated) {
+            setIsSynthesizerOpen(true);
+        } else {
+            setShowAuthGate(true);
+        }
+    };
 
     useEffect(() => {
         setIsHydrated(true);
@@ -30,7 +42,7 @@ export default function WatchlistsPage() {
                 </div>
 
                 <button
-                    onClick={() => setIsSynthesizerOpen(true)}
+                    onClick={handleCreateClick}
                     className="px-6 py-3 bg-primary text-black font-bold font-orbitron tracking-widest rounded-sm shadow-neon hover:scale-105 hover:bg-white hover:text-primary transition-all duration-300 flex items-center gap-2"
                 >
                     <Plus className="w-5 h-5" />
@@ -53,7 +65,7 @@ export default function WatchlistsPage() {
                     <h2 className="text-2xl font-orbitron text-foreground mb-2">NO SIGNALS DETECTED</h2>
                     <p className="text-foreground/40 font-mono text-sm mb-8">INITIATE A SCAN TO BEGIN TRACKING MARKETS</p>
                     <button
-                        onClick={() => setIsSynthesizerOpen(true)}
+                        onClick={handleCreateClick}
                         className="px-8 py-3 border border-primary text-primary hover:bg-primary hover:text-black font-orbitron tracking-wide transition-all duration-300 rounded-sm"
                     >
                         ACTIVATE SYNTHESIZER
@@ -74,6 +86,13 @@ export default function WatchlistsPage() {
                         createWatchlist(name, markets);
                         setIsSynthesizerOpen(false);
                     }}
+                />
+            )}
+
+            {showAuthGate && (
+                <AuthGateModal
+                    message="Create an account to build watchlists, track markets, and receive personalized alerts."
+                    onClose={() => setShowAuthGate(false)}
                 />
             )}
         </div>

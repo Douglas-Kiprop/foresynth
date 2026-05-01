@@ -40,8 +40,8 @@ export function Sidebar() {
             {/* Header with Logo and Toggle */}
             <div className={cn("p-6 border-b border-sidebar-border flex items-center justify-between", isCollapsed && "px-4 justify-center")}>
                 <Link href="/" className={cn("group flex items-center gap-3", isCollapsed && "hidden")}>
-                    <div className="relative h-7 w-7 shrink-0 group-hover:scale-110 transition-transform duration-300">
-                        <Image src="/foresynth-logo.png" alt="Foresynth Logo" fill className="object-contain invert opacity-90 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+                    <div className="relative h-9 w-9 shrink-0 group-hover:scale-110 transition-transform duration-300">
+                        <Image src="/foresynth-logo.png" alt="Foresynth Logo" fill sizes="36px" priority className="object-contain invert opacity-90 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
                     </div>
                     <span className="text-xl font-orbitron font-bold text-foreground tracking-widest group-hover:text-primary transition-all duration-300 whitespace-nowrap">
                         FORESYNTH
@@ -49,8 +49,8 @@ export function Sidebar() {
                 </Link>
 
                 {/* Logo Icon Only when collapsed */}
-                <div className={cn("relative h-7 w-7 shrink-0 hidden drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]", isCollapsed && "block")}>
-                    <Image src="/foresynth-logo.png" alt="Foresynth Logo" fill className="object-contain invert opacity-90" />
+                <div className={cn("relative h-9 w-9 shrink-0 hidden drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]", isCollapsed && "block")}>
+                    <Image src="/foresynth-logo.png" alt="Foresynth Logo" fill sizes="36px" priority className="object-contain invert opacity-90" />
                 </div>
 
                 <button
@@ -104,16 +104,26 @@ export function Sidebar() {
 
             <div className="p-4 border-t border-sidebar-border space-y-4">
                 {!isCollapsed && (
-                    <div className="flex items-center gap-3 px-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-500 border border-white/10" />
-                        <div className="flex-1 overflow-hidden">
-                            <div className="font-bold text-sm truncate">{user?.email?.split('@')[0] || "Operator"}</div>
-                            <div className="text-xs text-foreground/40 font-mono truncate">Online</div>
+                    user ? (
+                        <div className="flex items-center gap-3 px-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-500 border border-white/10" />
+                            <div className="flex-1 overflow-hidden">
+                                <div className="font-bold text-sm truncate">{user?.email?.split('@')[0] || "Operator"}</div>
+                                <div className="text-xs text-foreground/40 font-mono truncate">Online</div>
+                            </div>
+                            <button onClick={handleLogout} className="text-foreground/40 hover:text-red-500 transition-colors">
+                                <LogOut size={16} />
+                            </button>
                         </div>
-                        <button onClick={handleLogout} className="text-foreground/40 hover:text-red-500 transition-colors">
-                            <LogOut size={16} />
-                        </button>
-                    </div>
+                    ) : (
+                        <Link
+                            href="/login"
+                            className="flex items-center justify-center gap-2 px-4 py-3 bg-primary/10 border border-primary/30 text-primary font-orbitron text-xs tracking-widest rounded-sm hover:bg-primary hover:text-black transition-all duration-300"
+                        >
+                            <LogOut size={14} className="rotate-180" />
+                            LOG IN / SIGN UP
+                        </Link>
+                    )
                 )}
 
                 <div

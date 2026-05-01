@@ -37,8 +37,8 @@ export default function LoginPage() {
             <div className="hidden md:flex flex-col justify-center items-center bg-black/40 border-r border-sidebar-border relative overflow-hidden">
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20" />
                 <div className="z-10 text-center p-8 flex flex-col items-center">
-                    <div className="relative w-32 h-32 mb-6 drop-shadow-[0_0_20px_rgba(6,182,212,0.6)] group-hover:scale-105 transition-transform">
-                        <Image src="/foresynth-logo.png" alt="Foresynth Logo" fill className="object-contain invert opacity-90" />
+                    <div className="relative w-40 h-40 mb-6 drop-shadow-[0_0_20px_rgba(6,182,212,0.6)] group-hover:scale-105 transition-transform">
+                        <Image src="/foresynth-logo.png" alt="Foresynth Logo" fill sizes="160px" priority className="object-contain invert opacity-90" />
                     </div>
                     <h1 className="text-6xl font-orbitron font-bold text-primary mb-4 animate-pulse">FORESYNTH</h1>
                     <p className="text-xl font-rajdhani text-foreground/60 tracking-widest">

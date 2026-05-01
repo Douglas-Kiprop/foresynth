@@ -3,19 +3,26 @@
 import { useEffect, useState } from "react";
 import { Bell, X, Info, TrendingUp, Zap, Check } from "lucide-react";
 import { useNotificationStore } from "@/stores/notification-store";
+import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 
 export function NotificationBell({ isCollapsed }: { isCollapsed: boolean }) {
     const { notifications, unreadCount, loadNotifications, markAsRead, markAllAsRead } = useNotificationStore();
+    const { isAuthenticated } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
+        if (!isAuthenticated) return;
+
         loadNotifications();
         // Set up real-time polling or subscription here if needed
         const interval = setInterval(loadNotifications, 30000); // Poll every 30s
         return () => clearInterval(interval);
-    }, []);
+    }, [isAuthenticated]);
+
+    // Don't render the bell at all when logged out
+    if (!isAuthenticated) return null;
 
     const toggleOpen = () => setIsOpen(!isOpen);
 
@@ -55,10 +62,10 @@ export function NotificationBell({ isCollapsed }: { isCollapsed: boolean }) {
 
             {isOpen && (
                 <div className={cn(
-                    "fixed z-50 bg-sidebar border border-sidebar-border shadow-2xl rounded-sm flex flex-col animate-in fade-in slide-in-from-top-2 duration-200",
+                    "fixed z-50 border border-sidebar-border shadow-2xl rounded-sm flex flex-col animate-in fade-in slide-in-from-top-2 duration-200",
                     isCollapsed ? "left-24 top-20 w-80" : "left-64 top-20 w-80 lg:left-72"
-                )} style={{ maxHeight: '500px' }}>
-                    <div className="p-4 border-b border-sidebar-border flex items-center justify-between bg-black/20">
+                )} style={{ maxHeight: '500px', backgroundColor: '#0a0f1a' }}>
+                    <div className="p-4 border-b border-sidebar-border flex items-center justify-between" style={{ backgroundColor: '#060a14' }}>
                         <h3 className="text-xs font-orbitron font-bold tracking-widest text-primary flex items-center gap-2">
                             <Bell className="w-3 h-3" /> INTEL FEED
                         </h3>
@@ -77,7 +84,7 @@ export function NotificationBell({ isCollapsed }: { isCollapsed: boolean }) {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ backgroundColor: '#0a0f1a' }}>
                         {notifications.length === 0 ? (
                             <div className="p-10 text-center">
                                 <p className="text-xs font-mono text-foreground/20 italic">No tactical signals detected.</p>
@@ -111,7 +118,7 @@ export function NotificationBell({ isCollapsed }: { isCollapsed: boolean }) {
                         )}
                     </div>
 
-                    <div className="p-3 border-t border-sidebar-border text-center bg-black/10">
+                    <div className="p-3 border-t border-sidebar-border text-center" style={{ backgroundColor: '#060a14' }}>
                         <button className="text-[10px] font-orbitron font-bold tracking-widest text-foreground/40 hover:text-primary transition-all">
                             VIEW ALL TACTICAL LOGS
                         </button>

@@ -38,23 +38,21 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
+    // Only redirect to /login for strictly private pages (account, agent)
     if (
         !user &&
         !request.nextUrl.pathname.startsWith('/login') &&
         !request.nextUrl.pathname.startsWith('/auth') &&
         request.nextUrl.pathname !== '/'
     ) {
-        // DEV BYPASS: Disable authentication redirects for testing
-        // // Check if the route requires auth (Watchlist, Smart Money, Account)
-        // if (
-        //     request.nextUrl.pathname.startsWith('/watchlists') ||
-        //     request.nextUrl.pathname.startsWith('/smart-money') ||
-        //     request.nextUrl.pathname.startsWith('/account')
-        // ) {
-        //     const url = request.nextUrl.clone()
-        //     url.pathname = '/login'
-        //     return NextResponse.redirect(url)
-        // }
+        if (
+            request.nextUrl.pathname.startsWith('/account') ||
+            request.nextUrl.pathname.startsWith('/agent')
+        ) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            return NextResponse.redirect(url)
+        }
     }
 
     return supabaseResponse

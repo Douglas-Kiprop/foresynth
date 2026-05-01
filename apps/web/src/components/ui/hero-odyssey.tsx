@@ -277,8 +277,8 @@ export const HeroSection: React.FC = () => {
                 {/* Navigation / Header */}
                 <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }} className="px-6 py-4 flex justify-between items-center z-50">
                     <div className="flex items-center gap-3 px-4 py-2 rounded-full border border-primary/20 bg-primary/5 backdrop-blur-md shadow-neon">
-                        <div className="relative w-6 h-6 shrink-0 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]">
-                            <Image src="/foresynth-logo.png" alt="Foresynth Logo" fill className="object-contain invert opacity-90" />
+                        <div className="relative w-8 h-8 shrink-0 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]">
+                            <Image src="/foresynth-logo.png" alt="Foresynth Logo" fill sizes="32px" className="object-contain invert opacity-90" />
                         </div>
                         <span className="text-sm font-orbitron text-primary tracking-widest hidden sm:inline">FORESYNTH</span>
                     </div>
