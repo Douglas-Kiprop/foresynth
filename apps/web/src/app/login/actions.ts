@@ -1,7 +1,7 @@
-
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 
@@ -30,11 +30,16 @@ export async function signup(formData: FormData) {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
+    const headersList = await headers();
+    const host = headersList.get("host");
+    const protocol = headersList.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
+    const baseUrl = `${protocol}://${host}`;
+
     const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-            emailRedirectTo: "http://localhost:3000/auth/callback",
+            emailRedirectTo: `${baseUrl}/auth/callback`,
         },
     });
 
