@@ -15,7 +15,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 telegram_service = get_telegram_service()
 
-AGENT_BASE_URL = "http://127.0.0.1:8001"
+import os
+
+AGENT_BASE_URL = os.environ.get("AGENT_BASE_URL", "http://127.0.0.1:8001")
 
 @router.post("/connect")
 async def generate_connect_token(

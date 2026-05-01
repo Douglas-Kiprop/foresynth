@@ -1,0 +1,45 @@
+services:
+  # 1. The FastAPI Backend
+  - type: web
+    name: foresynth-api
+    env: python
+    buildCommand: pipenv install
+    startCommand: cd apps/api && pipenv run uvicorn src.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: AGENT_BASE_URL
+        # This will securely connect the API directly to the Agent internally
+        value: http://foresynth-agent:10000 
+      # Add the rest of your .env secrets manually in the Render Dashboard
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: UPSTASH_REDIS_URL
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+
+  # 2. The LangGraph Agent
+  - type: web
+    name: foresynth-agent
+    env: python
+    buildCommand: pipenv install
+    startCommand: cd apps/agent && pipenv run uvicorn src.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # Add your agent .env secrets manually in the Render Dashboard
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: UPSTASH_REDIS_URL
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
